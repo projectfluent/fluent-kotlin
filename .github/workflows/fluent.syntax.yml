@@ -15,9 +15,6 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Build with Gradle
-      working-directory: ./fluent.syntax
-      run: ./gradlew build
-    - name: Check
+    - name: Build and check
       working-directory: ./fluent.syntax
       run: ./gradlew check
