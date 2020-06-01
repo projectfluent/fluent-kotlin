@@ -77,6 +77,20 @@ abstract class PatternElement : SyntaxNode()
 
 data class TextElement(var value:String): PatternElement()
 
+data class Placeable (var expression: Expression): PatternElement()
+
+abstract class Expression : SyntaxNode()
+
+abstract class Literal(val value:String) : Expression()
+
+class StringLiteral : Literal {
+    constructor(value: String) : super(value)
+}
+
+class NumberLiteral : Literal {
+    constructor(value: String) : super(value)
+}
+
 data class Attribute(var id:Identifier, var value: Pattern): SyntaxNode()
 
 data class Identifier(var name: String): SyntaxNode()

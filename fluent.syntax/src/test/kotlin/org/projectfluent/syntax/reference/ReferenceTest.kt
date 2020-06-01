@@ -38,7 +38,6 @@ internal class ReferenceTest {
         assertNotNull(ref_type_names, "Could not extract reference")
         ref_type_names?.let {
             assertEquals(it, fluent_type_names)
-
         }
     }
 }

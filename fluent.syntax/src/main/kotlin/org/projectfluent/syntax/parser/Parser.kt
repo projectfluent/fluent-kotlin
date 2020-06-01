@@ -209,6 +209,40 @@ class FluentParser(withSpans: Boolean=false) {
         return Identifier(name)
     }
 
+    fun getDigits(ps: FluentStream): String {
+        var num = "";
+
+        var ch = ps.takeDigit()
+        while (ch != null) {
+            num += ch;
+            ch = ps.takeDigit()
+        }
+
+        if (num.length == 0) {
+            throw ParseError("E0004", "0-9");
+        }
+
+        return num;
+    }
+
+    fun getNumber(ps: FluentStream): NumberLiteral {
+        var value = "";
+
+        if (ps.currentChar() == '-') {
+            ps.next();
+            value += "-${this.getDigits(ps)}";
+        } else {
+            value += this.getDigits(ps);
+        }
+
+        if (ps.currentChar() == '.') {
+            ps.next();
+            value += ".${this.getDigits(ps)}";
+        }
+
+        return NumberLiteral(value);
+    }
+
     // maybeGetPattern distinguishes between patterns which start on the same line
     // as the identifier (a.k.a. inline signleline patterns and inline multiline
     // patterns) and patterns which start on a new line (a.k.a. block multiline
@@ -360,8 +394,195 @@ class FluentParser(withSpans: Boolean=false) {
         return TextElement(buffer)
     }
 
+    fun getEscapeSequence(ps: FluentStream): String {
+        val next = ps.currentChar();
+
+        return when (next) {
+            '\\', '"' -> {
+                ps.next()
+                "\\${next}"
+            }
+            'u' -> this.getUnicodeEscapeSequence(ps, next, 4)
+            'U' -> this.getUnicodeEscapeSequence(ps, next, 6)
+            else -> throw ParseError("E0025", next ?: "EOF")
+        }
+    }
+
+    fun getUnicodeEscapeSequence(
+    ps: FluentStream,
+    u: Char,
+    digits: Int
+    ): String {
+        ps.expectChar(u);
+
+        var sequence = "";
+        for (i in 0 until digits) {
+            val ch = ps.takeHexDigit();
+
+            if (ch == null) {
+                throw ParseError(
+                        "E0026", "\\${u}${sequence}${ps.currentChar()}");
+            }
+
+            sequence += ch;
+        }
+
+        return "\\${u}${sequence}"
+    }
+
     fun getPlaceable(ps:FluentStream): PatternElement {
-        throw ParseError("E0001")
+        ps.expectChar('{');
+        ps.skipBlank();
+        val expression = this.getExpression(ps);
+        ps.expectChar('}');
+        return Placeable(expression);
+    }
+
+    fun getExpression(ps: FluentStream): Expression {
+        val selector = this.getInlineExpression(ps);
+        ps.skipBlank();
+
+//        if (ps.currentChar() == '-') {
+//            if (ps.peek() != '>') {
+//                ps.resetPeek();
+//                return selector;
+//            }
+//
+//            // Validate selector expression according to
+//            // abstract.js in the Fluent specification
+//
+//            if (selector is MessageReference) {
+//                if (selector.attribute == null) {
+//                    throw ParseError("E0016");
+//                } else {
+//                    throw new ParseError("E0018");
+//                }
+//            } else if (selector is TermReference) {
+//                if (selector.attribute == null) {
+//                    throw ParseError("E0017");
+//                }
+//            } else if (selector is Placeable) {
+//                throw ParseError("E0029");
+//            }
+//
+//            ps.next();
+//            ps.next();
+//
+//            ps.skipBlankInline();
+//            ps.expectLineEnd();
+//
+//            val variants = this.getVariants(ps);
+//            return SelectExpression(selector, variants);
+//        }
+
+//        if (selector is TermReference && selector.attribute !== null) {
+//            throw ParseError("E0019");
+//        }
+
+        return selector;
+    }
+
+    fun getInlineExpression(ps: FluentStream): Expression {
+//        if (ps.currentChar() == '{') {
+//            return this.getPlaceable(ps);
+//        }
+
+        if (ps.isNumberStart()) {
+            return this.getNumber(ps);
+        }
+
+        if (ps.currentChar() == '"') {
+            return this.getString(ps);
+        }
+
+//        if (ps.currentChar() == '$') {
+//            ps.next();
+//            val id = this.getIdentifier(ps);
+//            return VariableReference(id);
+//        }
+//
+//        if (ps.currentChar() == '-') {
+//            ps.next();
+//            val id = this.getIdentifier(ps);
+//
+//            var attr: Identifier? = null;
+//            if (ps.currentChar() == '.') {
+//                ps.next();
+//                attr = this.getIdentifier(ps);
+//            }
+//
+//            var args;
+//            ps.peekBlank();
+//            if (ps.currentPeek() == '(') {
+//                ps.skipToPeek();
+//                args = this.getCallArguments(ps);
+//            }
+//
+//            return TermReference(id, attr, args);
+//        }
+
+//        if (ps.isIdentifierStart()) {
+//            val id = this.getIdentifier(ps);
+//            ps.peekBlank();
+//
+//            if (ps.currentPeek() == '(') {
+//                // It's a Function. Ensure it's all upper-case.
+//                if (!/^[A-Z][A-Z0-9_-]*$/.test(id.name)) {
+//                    throw new ParseError("E0008");
+//                }
+//
+//                ps.skipToPeek();
+//                val args = this.getCallArguments(ps);
+//                return FunctionReference(id, args);
+//            }
+//
+//            var attr;
+//            if (ps.currentChar() == '.') {
+//                ps.next();
+//                attr = this.getIdentifier(ps);
+//            }
+//
+//            return MessageReference(id, attr);
+//        }
+
+
+        throw ParseError("E0028");
+    }
+
+    fun getString(ps: FluentStream): StringLiteral {
+        ps.expectChar('"');
+        var value = "";
+
+        val filter = {x:Char -> x!= '"' && x != EOL}
+        var ch = ps.takeChar(filter);
+        while (ch != null) {
+            if (ch === '\\') {
+                value += this.getEscapeSequence(ps);
+            } else {
+                value += ch;
+            }
+            ch = ps.takeChar(filter)
+        }
+
+        if (ps.currentChar() == EOL) {
+            throw ParseError("E0020");
+        }
+
+        ps.expectChar('"');
+
+        return StringLiteral(value);
+    }
+
+    fun getLiteral(ps: FluentStream): Literal {
+        if (ps.isNumberStart()) {
+            return this.getNumber(ps);
+        }
+
+        if (ps.currentChar() == '"') {
+            return this.getString(ps);
+        }
+
+        throw ParseError("E0014");
     }
 }
 
