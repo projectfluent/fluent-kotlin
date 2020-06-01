@@ -56,9 +56,15 @@ abstract class TopLevel : SyntaxNode()
  */
 abstract class Entry : TopLevel()
 
-data class Message(var id: Identifier, var value: Pattern?) : Entry()
+data class Message(var id: Identifier, var value: Pattern?) : Entry() {
+    var attributes: MutableList<Attribute> = mutableListOf()
+    var comment: Comment? = null
+}
 
-data class Term(var id: Identifier, var value: Pattern) : Entry()
+data class Term(var id: Identifier, var value: Pattern) : Entry() {
+    var attributes: MutableList<Attribute> = mutableListOf()
+    var comment: Comment? = null
+}
 
 class Pattern : SyntaxNode {
     val elements: MutableList<PatternElement> = mutableListOf()
@@ -71,9 +77,11 @@ abstract class PatternElement : SyntaxNode()
 
 data class TextElement(var value:String): PatternElement()
 
+data class Attribute(var id:Identifier, var value: Pattern): SyntaxNode()
+
 data class Identifier(var name: String): SyntaxNode()
 
-abstract class BaseComment(var content:String) : TopLevel()
+abstract class BaseComment(var content:String) : Entry()
 
 class Comment : BaseComment {
     constructor(content: String) : super(content)

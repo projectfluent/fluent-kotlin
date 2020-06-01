@@ -26,6 +26,9 @@ dependencies {
 
     // Use the Kotlin JUnit integration.
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
+
+    // Use Klaxon for tests.
+    testImplementation("com.beust:klaxon:5.0.1")
 }
 
 tasks.test {
