@@ -433,7 +433,14 @@ class FluentParser(withSpans: Boolean=false) {
     fun getPlaceable(ps:FluentStream): PatternElement {
         ps.expectChar('{');
         ps.skipBlank();
-        val expression = this.getExpression(ps);
+        val expression = when(ps.currentChar()) {
+            '{' -> {
+                val child = this.getPlaceable(ps)
+                ps.skipBlank()
+                child
+            }
+            else -> this.getExpression(ps)
+        };
         ps.expectChar('}');
         return Placeable(expression);
     }
@@ -483,10 +490,6 @@ class FluentParser(withSpans: Boolean=false) {
     }
 
     fun getInlineExpression(ps: FluentStream): Expression {
-//        if (ps.currentChar() == '{') {
-//            return this.getPlaceable(ps);
-//        }
-
         if (ps.isNumberStart()) {
             return this.getNumber(ps);
         }

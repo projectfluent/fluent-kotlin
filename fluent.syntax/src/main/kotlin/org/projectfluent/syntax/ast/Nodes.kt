@@ -77,7 +77,7 @@ abstract class PatternElement : SyntaxNode()
 
 data class TextElement(var value:String): PatternElement()
 
-data class Placeable (var expression: Expression): PatternElement()
+data class Placeable (var expression: SyntaxNode): PatternElement()
 
 abstract class Expression : SyntaxNode()
 
