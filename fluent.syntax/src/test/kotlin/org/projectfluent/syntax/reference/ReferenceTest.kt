@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 
 import org.junit.jupiter.api.Assertions.*
+import org.projectfluent.syntax.ast.Whitespace
 import org.projectfluent.syntax.parser.FluentParser
 import java.io.File
 import java.nio.file.Paths
@@ -31,7 +32,7 @@ internal class ReferenceTest {
         val ref_content = ftl_file.readText()
         val parser = FluentParser()
         val resource = parser.parse(ref_content)
-        val fluent_type_names = resource.body.map { node -> node::class.simpleName }
+        val fluent_type_names = resource.body.filter { node -> !(node is Whitespace) }.map { node -> node::class.simpleName }
         val ref = Parser.default().parse(json_file.path) as JsonObject
         val ref_body = ref.array<JsonObject>("body")
         val ref_type_names = ref_body?.string("type")?.filter { n -> n != null }

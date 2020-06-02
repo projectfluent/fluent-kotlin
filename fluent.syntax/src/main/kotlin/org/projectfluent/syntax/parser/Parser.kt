@@ -12,12 +12,15 @@ class FluentParser(withSpans: Boolean=false) {
 
     fun parse(source: String): Resource {
         var ps = FluentStream(source)
-        ps.skipBlankBlock()
         var entries: MutableList<TopLevel> = mutableListOf()
         var lastComment: Comment? = null
+        var blankLines = ps.skipBlankBlock()
+        if (blankLines.length > 0) {
+            entries.add(Whitespace(blankLines))
+        }
         while (ps.currentChar() != null) {
             val entry = this.getEntryOrJunk(ps)
-            val blankLines = ps.skipBlankBlock()
+            blankLines = ps.skipBlankBlock()
 
             // Regular Comments require special logic. Comments may be attached to
             // Messages or Terms if they are followed immediately by them. However
@@ -44,6 +47,9 @@ class FluentParser(withSpans: Boolean=false) {
 
             // No special logic for other types of entries.
             entries.add(entry)
+            if (blankLines.length > 0) {
+                entries.add(Whitespace(blankLines))
+            }
         }
         return Resource(*entries.toTypedArray())
     }
