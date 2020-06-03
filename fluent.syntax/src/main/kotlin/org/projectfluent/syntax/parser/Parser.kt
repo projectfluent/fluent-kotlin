@@ -3,6 +3,7 @@ package org.projectfluent.syntax.parser
 import org.projectfluent.syntax.ast.*
 
 var trailingWSRe = Regex("[ \t\n\r]+$/")
+val VALID_FUNCTION_NAME = Regex("^[A-Z][A-Z0-9_-]*\$")
 
 class FluentParser(withSpans: Boolean=false) {
     var withSpans:Boolean = true
@@ -213,6 +214,78 @@ class FluentParser(withSpans: Boolean=false) {
             ch = ps.takeIDChar()
         }
         return Identifier(name)
+    }
+
+    fun getVariantKey(ps: FluentStream): VariantKey {
+        val ch = ps.currentChar();
+
+        if (ch == null) {
+            throw ParseError("E0013");
+        }
+
+        val cc = ch.toInt();
+
+        if ((cc >= 48 && cc <= 57) || cc == 45) { // 0-9, -
+            return this.getNumber(ps);
+        }
+
+        return this.getIdentifier(ps);
+    }
+
+    fun getVariant(ps: FluentStream, hasDefault: Boolean = false): Variant {
+        var defaultIndex = false;
+
+        if (ps.currentChar() == '*') {
+            if (hasDefault) {
+                throw ParseError("E0015");
+            }
+            ps.next();
+            defaultIndex = true;
+        }
+
+        ps.expectChar('[');
+
+        ps.skipBlank();
+
+        val key = this.getVariantKey(ps);
+
+        ps.skipBlank();
+        ps.expectChar(']');
+
+        val value = this.maybeGetPattern(ps);
+        if (value == null) {
+            throw ParseError("E0012");
+        }
+
+        return Variant(key, value, defaultIndex);
+    }
+
+    fun  getVariants(ps: FluentStream): MutableList<Variant> {
+        val variants: MutableList<Variant> = mutableListOf()
+        var hasDefault = false;
+
+        ps.skipBlank();
+        while (ps.isVariantStart()) {
+            val variant = this.getVariant(ps, hasDefault);
+
+            if (variant.default) {
+                hasDefault = true;
+            }
+
+            variants.add(variant);
+            ps.expectLineEnd();
+            ps.skipBlank();
+        }
+
+        if (variants.size == 0) {
+            throw ParseError("E0011");
+        }
+
+        if (!hasDefault) {
+            throw ParseError("E0010");
+        }
+
+        return variants;
     }
 
     fun getDigits(ps: FluentStream): String {
@@ -448,49 +521,47 @@ class FluentParser(withSpans: Boolean=false) {
             else -> this.getExpression(ps)
         };
         ps.expectChar('}');
-        return Placeable(expression);
+        return Placeable(expression as InsidePlaceable);
     }
 
     fun getExpression(ps: FluentStream): Expression {
         val selector = this.getInlineExpression(ps);
         ps.skipBlank();
 
-//        if (ps.currentChar() == '-') {
-//            if (ps.peek() != '>') {
-//                ps.resetPeek();
-//                return selector;
-//            }
-//
-//            // Validate selector expression according to
-//            // abstract.js in the Fluent specification
-//
-//            if (selector is MessageReference) {
-//                if (selector.attribute == null) {
-//                    throw ParseError("E0016");
-//                } else {
-//                    throw new ParseError("E0018");
-//                }
-//            } else if (selector is TermReference) {
-//                if (selector.attribute == null) {
-//                    throw ParseError("E0017");
-//                }
-//            } else if (selector is Placeable) {
-//                throw ParseError("E0029");
-//            }
-//
-//            ps.next();
-//            ps.next();
-//
-//            ps.skipBlankInline();
-//            ps.expectLineEnd();
-//
-//            val variants = this.getVariants(ps);
-//            return SelectExpression(selector, variants);
-//        }
+        if (ps.currentChar() == '-') {
+            if (ps.peek() != '>') {
+                ps.resetPeek();
+                return selector;
+            }
 
-//        if (selector is TermReference && selector.attribute !== null) {
-//            throw ParseError("E0019");
-//        }
+            // Validate selector expression according to
+            // abstract.js in the Fluent specification
+
+            if (selector is MessageReference) {
+                if (selector.attribute == null) {
+                    throw ParseError("E0016");
+                } else {
+                    throw ParseError("E0018");
+                }
+            } else if (selector is TermReference) {
+                if (selector.attribute == null) {
+                    throw ParseError("E0017");
+                }
+            }
+
+            ps.next();
+            ps.next();
+
+            ps.skipBlankInline();
+            ps.expectLineEnd();
+
+            val variants = this.getVariants(ps);
+            return SelectExpression(selector, variants);
+        }
+
+        if (selector is TermReference && selector.attribute !== null) {
+            throw ParseError("E0019");
+        }
 
         return selector;
     }
@@ -504,58 +575,127 @@ class FluentParser(withSpans: Boolean=false) {
             return this.getString(ps);
         }
 
-//        if (ps.currentChar() == '$') {
-//            ps.next();
-//            val id = this.getIdentifier(ps);
-//            return VariableReference(id);
-//        }
-//
-//        if (ps.currentChar() == '-') {
-//            ps.next();
-//            val id = this.getIdentifier(ps);
-//
-//            var attr: Identifier? = null;
-//            if (ps.currentChar() == '.') {
-//                ps.next();
-//                attr = this.getIdentifier(ps);
-//            }
-//
-//            var args;
-//            ps.peekBlank();
-//            if (ps.currentPeek() == '(') {
-//                ps.skipToPeek();
-//                args = this.getCallArguments(ps);
-//            }
-//
-//            return TermReference(id, attr, args);
-//        }
+        if (ps.currentChar() == '$') {
+            ps.next();
+            val id = this.getIdentifier(ps);
+            return VariableReference(id);
+        }
 
-//        if (ps.isIdentifierStart()) {
-//            val id = this.getIdentifier(ps);
-//            ps.peekBlank();
-//
-//            if (ps.currentPeek() == '(') {
-//                // It's a Function. Ensure it's all upper-case.
-//                if (!/^[A-Z][A-Z0-9_-]*$/.test(id.name)) {
-//                    throw new ParseError("E0008");
-//                }
-//
-//                ps.skipToPeek();
-//                val args = this.getCallArguments(ps);
-//                return FunctionReference(id, args);
-//            }
-//
-//            var attr;
-//            if (ps.currentChar() == '.') {
-//                ps.next();
-//                attr = this.getIdentifier(ps);
-//            }
-//
-//            return MessageReference(id, attr);
-//        }
+        if (ps.currentChar() == '-') {
+            ps.next();
+            val id = this.getIdentifier(ps);
+
+            var attr: Identifier? = null;
+            if (ps.currentChar() == '.') {
+                ps.next();
+                attr = this.getIdentifier(ps);
+            }
+
+            var args:CallArguments? = null;
+            ps.peekBlank();
+            if (ps.currentPeek() == '(') {
+                ps.skipToPeek();
+                args = this.getCallArguments(ps);
+            }
+
+            return TermReference(id, attr, args);
+        }
+
+        if (ps.isIdentifierStart()) {
+            val id = this.getIdentifier(ps);
+            ps.peekBlank();
+
+            if (ps.currentPeek() == '(') {
+                // It's a Function. Ensure it's all upper-case.
+                if (VALID_FUNCTION_NAME.matchEntire(id.name) == null) {
+                    throw ParseError("E0008");
+                }
+
+                ps.skipToPeek();
+                val args = this.getCallArguments(ps);
+                return FunctionReference(id, args);
+            }
+
+            var attr:Identifier? = null;
+            if (ps.currentChar() == '.') {
+                ps.next();
+                attr = this.getIdentifier(ps);
+            }
+
+            return MessageReference(id, attr);
+        }
 
 
         throw ParseError("E0028");
+    }
+
+    fun getCallArgument(ps: FluentStream): CallArgument {
+        val exp = this.getInlineExpression(ps);
+
+        ps.skipBlank();
+
+        if (ps.currentChar() != ':') {
+            return exp
+        }
+
+        if (exp is MessageReference && exp.attribute == null) {
+            ps.next();
+            ps.skipBlank();
+
+            val value = this.getLiteral(ps);
+            return NamedArgument(exp.id, value)
+        }
+
+        throw ParseError("E0009");
+
+    }
+
+    fun getCallArguments(ps: FluentStream): CallArguments {
+        val positional: MutableList<Expression> = mutableListOf()
+        val named: MutableList<NamedArgument> = mutableListOf()
+        val argumentNames: MutableSet<String> = mutableSetOf()
+
+        ps.expectChar('(');
+        ps.skipBlank();
+
+        while (true) {
+            if (ps.currentChar() == ')') {
+                break;
+            }
+
+            val arg = this.getCallArgument(ps);
+            when (arg) {
+                is NamedArgument -> {
+                    if (argumentNames.contains(arg.name.name)) {
+                        throw ParseError("E0022");
+                    }
+                    named.add(arg);
+                    argumentNames.add(arg.name.name);
+                }
+                is Expression -> {
+                    if (argumentNames.size > 0) {
+                        throw ParseError("E0021");
+                    }
+                    positional.add(arg);
+                }
+            }
+
+            ps.skipBlank();
+
+            if (ps.currentChar() == ',') {
+                ps.next();
+                ps.skipBlank();
+                continue;
+            }
+
+            break;
+        }
+
+        ps.expectChar(')');
+        val args = CallArguments();
+        args.positional.addAll(positional)
+        args.named.addAll(named)
+        return args
     }
 
     fun getString(ps: FluentStream): StringLiteral {
@@ -565,7 +705,7 @@ class FluentParser(withSpans: Boolean=false) {
         val filter = {x:Char -> x!= '"' && x != EOL}
         var ch = ps.takeChar(filter);
         while (ch != null) {
-            if (ch === '\\') {
+            if (ch == '\\') {
                 value += this.getEscapeSequence(ps);
             } else {
                 value += ch;

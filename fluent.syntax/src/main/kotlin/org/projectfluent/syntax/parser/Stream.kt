@@ -15,7 +15,7 @@ open class ParserStream {
         // beginning of the compound CRLF sequence. This ensures slices of
         // [inclusive, exclusive) continue to work properly.
         if (this.string[offset] == '\r') {
-            if (offset + 1 >= this.string.length && this.string[offset + 1] == '\n') {
+            if (offset + 1 < this.string.length && this.string[offset + 1] == '\n') {
                 return '\n'
             }
             else {

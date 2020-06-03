@@ -39,7 +39,6 @@ fun getErrorMessage(code: String, vararg args: Any) : String {
         "E0026" -> "Invalid Unicode escape sequence: ${args[0]}."
         "E0027" -> "Unbalanced closing brace in TextElement."
         "E0028" -> "Expected an inline expression"
-        "E0029" -> "Expected simple expression as selector"
         else -> code
     }
 }

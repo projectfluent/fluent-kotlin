@@ -77,9 +77,11 @@ abstract class PatternElement : SyntaxNode()
 
 data class TextElement(var value:String): PatternElement()
 
-data class Placeable (var expression: SyntaxNode): PatternElement()
+interface InsidePlaceable
 
-abstract class Expression : SyntaxNode()
+data class Placeable (var expression: InsidePlaceable): InsidePlaceable, PatternElement()
+
+abstract class Expression : CallArgument, InsidePlaceable, SyntaxNode()
 
 abstract class Literal(val value:String) : Expression()
 
@@ -87,13 +89,36 @@ class StringLiteral : Literal {
     constructor(value: String) : super(value)
 }
 
-class NumberLiteral : Literal {
+class NumberLiteral : VariantKey, Literal {
     constructor(value: String) : super(value)
+}
+
+data class MessageReference(var id:Identifier, var attribute: Identifier?=null) : Expression()
+
+data class TermReference(var id:Identifier, var attribute: Identifier?=null, var args: CallArguments?=null) : Expression()
+
+data class VariableReference(var id: Identifier) : Expression()
+
+data class FunctionReference(var id: Identifier,  var arguments: CallArguments): Expression()
+
+data class SelectExpression(var selector: Expression, var mutableList: MutableList<Variant>): Expression()
+
+interface CallArgument
+
+class CallArguments : SyntaxNode (){
+    val positional: MutableList<Expression> = mutableListOf()
+    val named: MutableList<NamedArgument> = mutableListOf()
 }
 
 data class Attribute(var id:Identifier, var value: Pattern): SyntaxNode()
 
-data class Identifier(var name: String): SyntaxNode()
+interface VariantKey
+
+data class Variant (var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
+
+data class NamedArgument(var name:Identifier, var value:Literal) : CallArgument, SyntaxNode()
+
+data class Identifier(var name: String): VariantKey, SyntaxNode()
 
 abstract class BaseComment(var content:String) : Entry()
 

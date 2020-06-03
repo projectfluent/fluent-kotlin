@@ -11,13 +11,18 @@ import org.projectfluent.syntax.parser.FluentParser
 import java.io.File
 import java.nio.file.Paths
 
+val DISABLED = arrayOf(
+    "leading_dots.ftl",
+    ""
+)
+
 internal class ReferenceTest {
     @TestFactory
     fun references(): Iterable<DynamicTest> {
         val reference_tests: MutableList<DynamicTest> = mutableListOf()
         val referencedir = Paths.get("src", "test", "resources", "reference_fixtures")
         for (entry in referencedir.toFile().walk()) {
-            if (entry.extension == "ftl") {
+            if (entry.extension == "ftl" && ! DISABLED.contains(entry.name)) {
                 val reftest = DynamicTest.dynamicTest(entry.name) {
                     this.compare_reference(entry)
                 }
@@ -38,7 +43,7 @@ internal class ReferenceTest {
         val ref_type_names = ref_body?.string("type")?.filter { n -> n != null }
         assertNotNull(ref_type_names, "Could not extract reference")
         ref_type_names?.let {
-            assertEquals(it, fluent_type_names)
+            assertArrayEquals(it.toTypedArray(), fluent_type_names.toTypedArray())
         }
     }
 }
