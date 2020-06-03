@@ -2,10 +2,9 @@ package org.projectfluent.syntax.reference
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
-
-import org.junit.jupiter.api.Assertions.*
 import org.projectfluent.syntax.ast.Whitespace
 import org.projectfluent.syntax.parser.FluentParser
 import java.io.File

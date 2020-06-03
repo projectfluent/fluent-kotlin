@@ -11,7 +11,7 @@ import kotlin.reflect.full.memberProperties
  *
  */
 abstract class BaseNode {
-    fun equals(other: BaseNode) : Boolean {
+    fun equals(other: BaseNode): Boolean {
         if (this::class != other::class) return false
         val other_members = hashMapOf<String, Any?>()
         other::class.memberProperties.forEach {
@@ -43,7 +43,7 @@ abstract class SyntaxNode() : BaseNode() {
  * A Fluent file representation
  */
 class Resource : SyntaxNode {
-    constructor(vararg children:TopLevel) : super() {
+    constructor(vararg children: TopLevel) : super() {
         this.body += children
     }
     val body: MutableList<TopLevel> = mutableListOf()
@@ -75,15 +75,15 @@ class Pattern : SyntaxNode {
 
 abstract class PatternElement : SyntaxNode()
 
-data class TextElement(var value:String): PatternElement()
+data class TextElement(var value: String) : PatternElement()
 
 interface InsidePlaceable
 
-data class Placeable (var expression: InsidePlaceable): InsidePlaceable, PatternElement()
+data class Placeable(var expression: InsidePlaceable) : InsidePlaceable, PatternElement()
 
 abstract class Expression : CallArgument, InsidePlaceable, SyntaxNode()
 
-abstract class Literal(val value:String) : Expression()
+abstract class Literal(val value: String) : Expression()
 
 class StringLiteral : Literal {
     constructor(value: String) : super(value)
@@ -93,34 +93,34 @@ class NumberLiteral : VariantKey, Literal {
     constructor(value: String) : super(value)
 }
 
-data class MessageReference(var id:Identifier, var attribute: Identifier?=null) : Expression()
+data class MessageReference(var id: Identifier, var attribute: Identifier? = null) : Expression()
 
-data class TermReference(var id:Identifier, var attribute: Identifier?=null, var args: CallArguments?=null) : Expression()
+data class TermReference(var id: Identifier, var attribute: Identifier? = null, var args: CallArguments? = null) : Expression()
 
 data class VariableReference(var id: Identifier) : Expression()
 
-data class FunctionReference(var id: Identifier,  var arguments: CallArguments): Expression()
+data class FunctionReference(var id: Identifier, var arguments: CallArguments) : Expression()
 
-data class SelectExpression(var selector: Expression, var mutableList: MutableList<Variant>): Expression()
+data class SelectExpression(var selector: Expression, var mutableList: MutableList<Variant>) : Expression()
 
 interface CallArgument
 
-class CallArguments : SyntaxNode (){
+class CallArguments : SyntaxNode() {
     val positional: MutableList<Expression> = mutableListOf()
     val named: MutableList<NamedArgument> = mutableListOf()
 }
 
-data class Attribute(var id:Identifier, var value: Pattern): SyntaxNode()
+data class Attribute(var id: Identifier, var value: Pattern) : SyntaxNode()
 
 interface VariantKey
 
-data class Variant (var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
+data class Variant(var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
 
-data class NamedArgument(var name:Identifier, var value:Literal) : CallArgument, SyntaxNode()
+data class NamedArgument(var name: Identifier, var value: Literal) : CallArgument, SyntaxNode()
 
-data class Identifier(var name: String): VariantKey, SyntaxNode()
+data class Identifier(var name: String) : VariantKey, SyntaxNode()
 
-abstract class BaseComment(var content:String) : Entry()
+abstract class BaseComment(var content: String) : Entry()
 
 class Comment : BaseComment {
     constructor(content: String) : super(content)

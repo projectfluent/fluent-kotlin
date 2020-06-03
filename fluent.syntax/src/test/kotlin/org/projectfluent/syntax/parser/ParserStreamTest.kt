@@ -1,8 +1,7 @@
 package org.projectfluent.syntax.parser
 
-import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 internal class ParserStreamTest {
 
@@ -56,116 +55,116 @@ internal class ParserStreamTest {
     fun peek_and_next() {
         val ps = ParserStream("abcd")
 
-        assertEquals('b', ps.peek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(0, ps.index);
+        assertEquals('b', ps.peek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(0, ps.index)
 
-        assertEquals('b', ps.next());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(1, ps.index);
+        assertEquals('b', ps.next())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(1, ps.index)
 
-        assertEquals('c', ps.peek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(1, ps.index);
+        assertEquals('c', ps.peek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(1, ps.index)
 
-        assertEquals('c', ps.next());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(2, ps.index);
-        assertEquals('c', ps.currentChar());
-        assertEquals('c', ps.currentPeek());
+        assertEquals('c', ps.next())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(2, ps.index)
+        assertEquals('c', ps.currentChar())
+        assertEquals('c', ps.currentPeek())
 
-        assertEquals('d', ps.peek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(2, ps.index);
+        assertEquals('d', ps.peek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(2, ps.index)
 
-        assertEquals('d', ps.next());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(3, ps.index);
-        assertEquals('d', ps.currentChar());
-        assertEquals('d', ps.currentPeek());
+        assertEquals('d', ps.next())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(3, ps.index)
+        assertEquals('d', ps.currentChar())
+        assertEquals('d', ps.currentPeek())
 
-        assertEquals(null, ps.peek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(3, ps.index);
-        assertEquals('d', ps.currentChar());
-        assertEquals(null, ps.currentPeek());
+        assertEquals(null, ps.peek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(3, ps.index)
+        assertEquals('d', ps.currentChar())
+        assertEquals(null, ps.currentPeek())
 
-        assertEquals(null, ps.peek());
-        assertEquals(2, ps.peekOffset);
-        assertEquals(3, ps.index);
+        assertEquals(null, ps.peek())
+        assertEquals(2, ps.peekOffset)
+        assertEquals(3, ps.index)
 
-        assertEquals(null, ps.next());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(4, ps.index);
+        assertEquals(null, ps.next())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(4, ps.index)
     }
 
     @Test
     fun skip_to_peek() {
         val ps = ParserStream("abcd")
 
-        ps.peek();
-        ps.peek();
+        ps.peek()
+        ps.peek()
 
-        ps.skipToPeek();
+        ps.skipToPeek()
 
-        assertEquals('c', ps.currentChar());
-        assertEquals('c', ps.currentPeek());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(2, ps.index);
+        assertEquals('c', ps.currentChar())
+        assertEquals('c', ps.currentPeek())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(2, ps.index)
 
-        ps.peek();
+        ps.peek()
 
-        assertEquals('c', ps.currentChar());
-        assertEquals('d', ps.currentPeek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(2, ps.index);
+        assertEquals('c', ps.currentChar())
+        assertEquals('d', ps.currentPeek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(2, ps.index)
 
-        ps.next();
+        ps.next()
 
-        assertEquals('d', ps.currentChar());
-        assertEquals('d', ps.currentPeek());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(3, ps.index);
+        assertEquals('d', ps.currentChar())
+        assertEquals('d', ps.currentPeek())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(3, ps.index)
     }
 
     @Test
     fun reset_peek() {
         val ps = ParserStream("abcd")
 
-        ps.next();
-        ps.peek();
-        ps.peek();
-        ps.resetPeek();
+        ps.next()
+        ps.peek()
+        ps.peek()
+        ps.resetPeek()
 
-        assertEquals('b', ps.currentChar());
-        assertEquals('b', ps.currentPeek());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(1, ps.index);
+        assertEquals('b', ps.currentChar())
+        assertEquals('b', ps.currentPeek())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(1, ps.index)
 
-        ps.peek();
+        ps.peek()
 
-        assertEquals('b', ps.currentChar());
-        assertEquals('c', ps.currentPeek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(1, ps.index);
+        assertEquals('b', ps.currentChar())
+        assertEquals('c', ps.currentPeek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(1, ps.index)
 
-        ps.peek();
-        ps.peek();
-        ps.peek();
-        ps.resetPeek();
+        ps.peek()
+        ps.peek()
+        ps.peek()
+        ps.resetPeek()
 
-        assertEquals('b', ps.currentChar());
-        assertEquals('b', ps.currentPeek());
-        assertEquals(0, ps.peekOffset);
-        assertEquals(1, ps.index);
+        assertEquals('b', ps.currentChar())
+        assertEquals('b', ps.currentPeek())
+        assertEquals(0, ps.peekOffset)
+        assertEquals(1, ps.index)
 
-        assertEquals('c', ps.peek());
-        assertEquals('b', ps.currentChar());
-        assertEquals('c', ps.currentPeek());
-        assertEquals(1, ps.peekOffset);
-        assertEquals(1, ps.index);
+        assertEquals('c', ps.peek())
+        assertEquals('b', ps.currentChar())
+        assertEquals('c', ps.currentPeek())
+        assertEquals(1, ps.peekOffset)
+        assertEquals(1, ps.index)
 
-        assertEquals('d', ps.peek());
-        assertEquals(null, ps.peek());
+        assertEquals('d', ps.peek())
+        assertEquals(null, ps.peek())
     }
 }

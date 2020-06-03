@@ -5,7 +5,7 @@ open class ParserStream {
     var index: Int = 0
     var peekOffset: Int = 0
     constructor(string: String) {
-        this.string =  string
+        this.string = string
     }
 
     internal fun charAt(offset: Int): Char? {
@@ -17,8 +17,7 @@ open class ParserStream {
         if (this.string[offset] == '\r') {
             if (offset + 1 < this.string.length && this.string[offset + 1] == '\n') {
                 return '\n'
-            }
-            else {
+            } else {
                 return null
             }
         }
@@ -53,7 +52,7 @@ open class ParserStream {
         if (this.string[this.index + this.peekOffset] == '\r') {
             this.peekOffset++
         }
-        if (this.index + this.peekOffset>= this.string.length) return null
+        if (this.index + this.peekOffset >= this.string.length) return null
         return this.string[this.index + peekOffset]
     }
 
@@ -68,7 +67,7 @@ open class ParserStream {
 }
 
 const val EOL = '\n'
-val EOF:Char? = null
+val EOF: Char? = null
 const val SPECIAL_LINE_START_CHARS = "}.[*"
 
 class FluentStream : ParserStream {
@@ -164,7 +163,7 @@ class FluentStream : ParserStream {
         ch?.let {
             val cc = ch.toInt()
             return (cc >= 97 && cc <= 122) || // a-z
-                    (cc >= 65 && cc <= 90) // A-Z
+                (cc >= 65 && cc <= 90) // A-Z
         }
         return false
     }
@@ -306,12 +305,14 @@ class FluentStream : ParserStream {
     }
 
     fun takeIDChar(): Char? {
-        val closure = fun (ch: Char) : Boolean {
+        val closure = fun (ch: Char): Boolean {
             val cc = ch.toInt()
-            return ((cc >= 97 && cc <= 122) || // a-z
+            return (
+                (cc >= 97 && cc <= 122) || // a-z
                     (cc >= 65 && cc <= 90) || // A-Z
                     (cc >= 48 && cc <= 57) || // 0-9
-                    cc == 95 || cc == 45) // _-
+                    cc == 95 || cc == 45
+                ) // _-
         }
 
         return this.takeChar(closure)
@@ -329,9 +330,9 @@ class FluentStream : ParserStream {
     fun takeHexDigit(): Char? {
         val closure = fun (ch: Char): Boolean {
             val cc = ch.toInt()
-            return (cc >= 48 && cc <= 57) // 0-9
-                    || (cc >= 65 && cc <= 70) // A-F
-                    || (cc >= 97 && cc <= 102) // a-f
+            return (cc >= 48 && cc <= 57) || // 0-9
+                (cc >= 65 && cc <= 70) || // A-F
+                (cc >= 97 && cc <= 102) // a-f
         }
 
         return this.takeChar(closure)

@@ -10,8 +10,8 @@ class ParseError(var code: String, vararg args: Any) : Exception(getErrorMessage
     }
 }
 
-fun getErrorMessage(code: String, vararg args: Any) : String {
-    return when(code) {
+fun getErrorMessage(code: String, vararg args: Any): String {
+    return when (code) {
         "E0001" -> "Generic Error"
         "E0002" -> "Expected an entry start"
         "E0003" -> "Expected token: \"${args[0]}\""
