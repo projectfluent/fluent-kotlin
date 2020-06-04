@@ -96,7 +96,7 @@ abstract class PatternElement : SyntaxNode()
 
 data class TextElement(var value: String) : PatternElement()
 
-sealed class PlaceableValue {
+sealed class PlaceableValue: SyntaxNode() {
     data class ExpressionPlaceable(val value: Expression): PlaceableValue()
     data class NestedPlaceable(val value: Placeable): PlaceableValue()
 }
@@ -137,7 +137,7 @@ class CallArguments : SyntaxNode() {
 
 data class Attribute(var id: Identifier, var value: Pattern) : SyntaxNode()
 
-sealed class VariantKey {
+sealed class VariantKey : SyntaxNode() {
     data class NumberKey(val key: NumberLiteral) : VariantKey()
     data class IdentifierKey(val key: Identifier) : VariantKey()
 }
