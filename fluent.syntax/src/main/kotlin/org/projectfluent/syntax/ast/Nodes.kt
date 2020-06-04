@@ -11,22 +11,41 @@ import kotlin.reflect.full.memberProperties
  *
  */
 abstract class BaseNode {
-    fun equals(other: BaseNode): Boolean {
+    fun nodeEquals(other: BaseNode?, ignoredFields: Array<String> = arrayOf("span")): Boolean {
+        if (other == null) return false
         if (this::class != other::class) return false
         val other_members = hashMapOf<String, Any?>()
         other::class.memberProperties.forEach {
-            if (it.visibility == KVisibility.PUBLIC) {
+            if (it.visibility == KVisibility.PUBLIC && ! ignoredFields.contains(it.name)) {
                 other_members[it.name] = it.getter.call(other)
             }
         }
         this::class.memberProperties.forEach {
             if (it.name in other_members) {
                 val value = it.getter.call(this)
-                if (value != other_members[it.name]) return false
+                val otherValue = other_members[it.name]
+                if (value is Collection<*> && otherValue is Collection<*>) {
+                    if (value.size != otherValue.size) return false
+                    for ((left, right) in value.zip(otherValue)) {
+                        if (! scalarsEqual(left!!, right!!, ignoredFields)) return false
+                    }
+                } else if (! scalarsEqual(value, otherValue, ignoredFields)) {
+                    return false
+                }
             }
         }
         return true
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is BaseNode) return this.nodeEquals(other, arrayOf())
+        return false
+    }
+}
+
+private fun scalarsEqual(left: Any?, right: Any?, ignoredFields: Array<String>): Boolean {
+    if (left is BaseNode && right is BaseNode) return left.nodeEquals(right, ignoredFields = ignoredFields)
+    return left == right
 }
 
 /**
@@ -101,7 +120,7 @@ data class VariableReference(var id: Identifier) : Expression()
 
 data class FunctionReference(var id: Identifier, var arguments: CallArguments) : Expression()
 
-data class SelectExpression(var selector: Expression, var mutableList: MutableList<Variant>) : Expression()
+data class SelectExpression(var selector: Expression, var variants: MutableList<Variant>) : Expression()
 
 interface CallArgument
 
