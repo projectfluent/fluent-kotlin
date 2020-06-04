@@ -100,7 +100,7 @@ interface InsidePlaceable
 
 data class Placeable(var expression: InsidePlaceable) : InsidePlaceable, PatternElement()
 
-abstract class Expression : CallArgument, InsidePlaceable, SyntaxNode()
+abstract class Expression : InsidePlaceable, SyntaxNode()
 
 abstract class Literal(val value: String) : Expression()
 
@@ -122,7 +122,10 @@ data class FunctionReference(var id: Identifier, var arguments: CallArguments) :
 
 data class SelectExpression(var selector: Expression, var variants: MutableList<Variant>) : Expression()
 
-interface CallArgument
+sealed class CallArgument {
+    data class Positional(val value: Expression): CallArgument()
+    data class Named(val value: NamedArgument): CallArgument()
+}
 
 class CallArguments : SyntaxNode() {
     val positional: MutableList<Expression> = mutableListOf()
@@ -138,7 +141,7 @@ sealed class VariantKey {
 
 data class Variant(var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
 
-data class NamedArgument(var name: Identifier, var value: Literal) : CallArgument, SyntaxNode()
+data class NamedArgument(var name: Identifier, var value: Literal) : SyntaxNode()
 
 data class Identifier(var name: String) : SyntaxNode()
 

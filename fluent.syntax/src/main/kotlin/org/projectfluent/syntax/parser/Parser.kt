@@ -636,7 +636,7 @@ class FluentParser(withSpans: Boolean = false) {
         ps.skipBlank()
 
         if (ps.currentChar() != ':') {
-            return exp
+            return CallArgument.Positional(exp)
         }
 
         if (exp is MessageReference && exp.attribute == null) {
@@ -644,7 +644,7 @@ class FluentParser(withSpans: Boolean = false) {
             ps.skipBlank()
 
             val value = this.getLiteral(ps)
-            return NamedArgument(exp.id, value)
+            return CallArgument.Named(NamedArgument(exp.id, value))
         }
 
         throw ParseError("E0009")
@@ -665,18 +665,18 @@ class FluentParser(withSpans: Boolean = false) {
 
             val arg = this.getCallArgument(ps)
             when (arg) {
-                is NamedArgument -> {
-                    if (argumentNames.contains(arg.name.name)) {
+                is CallArgument.Named -> {
+                    if (argumentNames.contains(arg.value.name.name)) {
                         throw ParseError("E0022")
                     }
-                    named.add(arg)
-                    argumentNames.add(arg.name.name)
+                    named.add(arg.value)
+                    argumentNames.add(arg.value.name.name)
                 }
-                is Expression -> {
+                is CallArgument.Positional -> {
                     if (argumentNames.size > 0) {
                         throw ParseError("E0021")
                     }
-                    positional.add(arg)
+                    positional.add(arg.value)
                 }
             }
 
