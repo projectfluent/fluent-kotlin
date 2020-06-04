@@ -1,9 +1,7 @@
 package org.projectfluent.syntax.ast
 
-
-import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 class BaseNodeTest {
     @Test fun test_equals() {

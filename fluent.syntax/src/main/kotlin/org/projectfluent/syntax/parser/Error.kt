@@ -10,8 +10,8 @@ class ParseError(var code: String, vararg args: Any) : Exception(getErrorMessage
     }
 }
 
-fun getErrorMessage(code: String, vararg args: Any) : String {
-    return when(code) {
+fun getErrorMessage(code: String, vararg args: Any): String {
+    return when (code) {
         "E0001" -> "Generic Error"
         "E0002" -> "Expected an entry start"
         "E0003" -> "Expected token: \"${args[0]}\""
@@ -39,7 +39,6 @@ fun getErrorMessage(code: String, vararg args: Any) : String {
         "E0026" -> "Invalid Unicode escape sequence: ${args[0]}."
         "E0027" -> "Unbalanced closing brace in TextElement."
         "E0028" -> "Expected an inline expression"
-        "E0029" -> "Expected simple expression as selector"
         else -> code
     }
 }
