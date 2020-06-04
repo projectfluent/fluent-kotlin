@@ -96,11 +96,14 @@ abstract class PatternElement : SyntaxNode()
 
 data class TextElement(var value: String) : PatternElement()
 
-interface InsidePlaceable
+sealed class PlaceableValue {
+    data class ExpressionPlaceable(val value: Expression): PlaceableValue()
+    data class NestedPlaceable(val value: Placeable): PlaceableValue()
+}
 
-data class Placeable(var expression: InsidePlaceable) : InsidePlaceable, PatternElement()
+data class Placeable(var expression: PlaceableValue) : PatternElement()
 
-abstract class Expression : InsidePlaceable, SyntaxNode()
+abstract class Expression : SyntaxNode()
 
 abstract class Literal(val value: String) : Expression()
 

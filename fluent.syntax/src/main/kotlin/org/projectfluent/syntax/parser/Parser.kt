@@ -511,19 +511,19 @@ class FluentParser(withSpans: Boolean = false) {
         return "\\${u}$sequence"
     }
 
-    fun getPlaceable(ps: FluentStream): PatternElement {
+    fun getPlaceable(ps: FluentStream): Placeable {
         ps.expectChar('{')
         ps.skipBlank()
         val expression = when (ps.currentChar()) {
             '{' -> {
-                val child = this.getPlaceable(ps)
+                val child = PlaceableValue.NestedPlaceable(this.getPlaceable(ps))
                 ps.skipBlank()
                 child
             }
-            else -> this.getExpression(ps)
+            else -> PlaceableValue.ExpressionPlaceable(this.getExpression(ps))
         }
         ps.expectChar('}')
-        return Placeable(expression as InsidePlaceable)
+        return Placeable(expression)
     }
 
     fun getExpression(ps: FluentStream): Expression {
