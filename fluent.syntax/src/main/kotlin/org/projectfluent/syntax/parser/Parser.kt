@@ -227,10 +227,10 @@ class FluentParser(withSpans: Boolean = false) {
         val cc = ch.toInt()
 
         if ((cc >= 48 && cc <= 57) || cc == 45) { // 0-9, -
-            return this.getNumber(ps)
+            return VariantKey.NumberKey(this.getNumber(ps))
         }
 
-        return this.getIdentifier(ps)
+        return VariantKey.IdentifierKey(this.getIdentifier(ps))
     }
 
     fun getVariant(ps: FluentStream, hasDefault: Boolean = false): Variant {

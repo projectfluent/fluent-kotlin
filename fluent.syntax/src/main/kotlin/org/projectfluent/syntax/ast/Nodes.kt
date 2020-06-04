@@ -108,7 +108,7 @@ class StringLiteral : Literal {
     constructor(value: String) : super(value)
 }
 
-class NumberLiteral : VariantKey, Literal {
+class NumberLiteral : Literal {
     constructor(value: String) : super(value)
 }
 
@@ -131,13 +131,16 @@ class CallArguments : SyntaxNode() {
 
 data class Attribute(var id: Identifier, var value: Pattern) : SyntaxNode()
 
-interface VariantKey
+sealed class VariantKey {
+    data class NumberKey(val key: NumberLiteral) : VariantKey()
+    data class IdentifierKey(val key: Identifier) : VariantKey()
+}
 
 data class Variant(var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
 
 data class NamedArgument(var name: Identifier, var value: Literal) : CallArgument, SyntaxNode()
 
-data class Identifier(var name: String) : VariantKey, SyntaxNode()
+data class Identifier(var name: String) : SyntaxNode()
 
 abstract class BaseComment(var content: String) : Entry()
 
