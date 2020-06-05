@@ -17,7 +17,7 @@ fun isSelectExpr(elem: PatternElement): Boolean {
 
 class FluentSerializer(var withJunk: Boolean = false) {
     fun serialize(resource: Resource): String {
-        val parts: MutableList<String> = mutableListOf()
+        val builder = StringBuilder()
 
         entries@ for (entry in resource.body) {
             val serialized = when (entry) {
@@ -32,10 +32,10 @@ class FluentSerializer(var withJunk: Boolean = false) {
                 }
                 else -> throw SerializeError("Unknown top-level entry type")
             }
-            parts.add(serialized)
+            builder.append(serialized)
         }
 
-        return parts.joinToString("")
+        return builder.toString()
     }
 
     fun serializeEntry(entry: Entry): String {
@@ -46,68 +46,69 @@ class FluentSerializer(var withJunk: Boolean = false) {
             is GroupComment -> return serializeComment(entry, "##")
             is ResourceComment -> return serializeComment(entry, "###")
         }
-        throw SerializeError("Unknown entry type: ${entry}")
+        throw SerializeError("Unknown entry type: $entry")
     }
 }
 
 
 fun serializeComment(comment: BaseComment, prefix: String = "#"): String {
-    val prefixed = comment.content.split("\n").map {
-        if (it.length > 0) {
-            prefix + " " + it
+    val builder = StringBuilder()
+    val lines = comment.content.split("\n")
+    for (line in lines) {
+        if (line.isNotEmpty()) {
+            builder.append("$prefix $line", "\n")
         } else {
-            prefix
+            builder.append(prefix, "\n")
         }
-    }.joinToString("\n")
-    // Add the trailing line.
-    return prefixed + "\n"
+    }
+    return builder.toString()
 }
 
 
 fun serializeMessage(message: Message): String {
-    val parts: MutableList<String> = mutableListOf()
+    val builder = StringBuilder()
 
     message.comment?.let {
-        parts.add(serializeComment(it))
+        builder.append(serializeComment(it))
     }
 
-    parts.add(message.id.name + " =")
+    builder.append(message.id.name, " =")
 
     message.value?.let {
-        parts.add(serializePattern(it))
+        builder.append(serializePattern(it))
     }
 
     for (attribute in message.attributes) {
-        parts.add(serializeAttribute(attribute))
+        builder.append(serializeAttribute(attribute))
     }
 
-    parts.add("\n")
-    return parts.joinToString("")
+    builder.append("\n")
+    return builder.toString()
 }
 
 
 fun serializeTerm(term: Term): String {
-    val parts: MutableList<String> = mutableListOf()
+    val builder = StringBuilder()
 
     term.comment?.let {
-        parts.add(serializeComment(it))
+        builder.append(serializeComment(it))
     }
 
-    parts.add("-" + term.id.name + " =")
-    parts.add(serializePattern(term.value))
+    builder.append("-" + term.id.name + " =")
+    builder.append(serializePattern(term.value))
 
     for (attribute in term.attributes) {
-        parts.add(serializeAttribute(attribute))
+        builder.append(serializeAttribute(attribute))
     }
 
-    parts.add("\n")
-    return parts.joinToString("")
+    builder.append("\n")
+    return builder.toString()
 }
 
 
 fun serializeAttribute(attribute: Attribute): String {
     val value = indent(serializePattern(attribute.value))
-    return "\n    .${attribute.id.name} =${value}"
+    return "\n    .${attribute.id.name} =$value"
 }
 
 
@@ -121,7 +122,7 @@ fun serializePattern(pattern: Pattern): String {
         return "\n    ${indent(content)}"
     }
 
-    return " " + content
+    return " $content"
 }
 
 
@@ -130,7 +131,7 @@ fun serializeElement(element: PatternElement): String {
         is TextElement -> return element.value
         is Placeable -> return serializePlaceable(element)
     }
-    throw SerializeError("Unknown element type: ${element}")
+    throw SerializeError("Unknown element type: $element")
 }
 
 
@@ -153,33 +154,38 @@ fun serializeExpression(expr: Expression): String {
         is NumberLiteral -> return expr.value
         is VariableReference -> return "$${expr.id.name}"
         is TermReference -> {
-            var out = "-${expr.id.name}"
+            val builder = StringBuilder()
+            builder.append("-", expr.id.name)
             expr.attribute?.let {
-                out += "." + it.name
+                builder.append(".", it.name)
             }
             expr.arguments?.let {
-                out += serializeCallArguments(it)
+                builder.append(serializeCallArguments(it))
             }
-            return out
+            return builder.toString()
         }
         is MessageReference -> {
-            var out = expr.id.name
+            val builder = StringBuilder()
+            builder.append(expr.id.name)
             expr.attribute?.let {
-                out += "." + it.name
+                builder.append(".", it.name)
             }
-            return out
+            return builder.toString()
         }
         is FunctionReference ->
             return "${expr.id.name}${serializeCallArguments(expr.arguments)}"
         is SelectExpression -> {
-            var out = serializeExpression(expr.selector) + " ->"
+            val builder = StringBuilder()
+            val selector = serializeExpression(expr.selector)
+            builder.append(selector, " ->")
             for (variant in expr.variants) {
-                out += serializeVariant(variant)
+                builder.append(serializeVariant(variant))
             }
-            return out + "\n"
+            builder.append("\n")
+            return builder.toString()
         }
     }
-    throw SerializeError("Unknown expression type: ${expr}")
+    throw SerializeError("Unknown expression type: $expr")
 }
 
 
@@ -188,10 +194,10 @@ fun serializeVariant(variant: Variant): String {
     val value = indent(serializePattern(variant.value))
 
     if (variant.default) {
-        return "\n   *[${key}]${value}"
+        return "\n   *[$key]$value"
     }
 
-    return "\n    [${key}]${value}"
+    return "\n    [$key]$value"
 }
 
 
@@ -199,13 +205,13 @@ fun serializeCallArguments(expr: CallArguments): String {
     val positional = expr.positional.map(::serializeExpression).joinToString(", ")
     val named = expr.named.map(::serializeNamedArgument).joinToString(", ")
     if (expr.positional.size > 0 && expr.named.size > 0) {
-        return "(${positional}, ${named})"
+        return "($positional, $named)"
     }
     if (expr.positional.size > 0) {
-        return "(${positional})"
+        return "($positional)"
     }
     if (expr.named.size > 0) {
-        return "(${named})"
+        return "($named)"
     }
     return "()"
 }
@@ -213,7 +219,7 @@ fun serializeCallArguments(expr: CallArguments): String {
 
 fun serializeNamedArgument(arg: NamedArgument): String {
     val value = serializeExpression(arg.value)
-    return "${arg.name.name}: ${value}"
+    return "${arg.name.name}: $value"
 }
 
 fun serializeVariantKey(key: VariantKey): String {
@@ -221,6 +227,6 @@ fun serializeVariantKey(key: VariantKey): String {
         is Identifier -> return key.name
         is NumberLiteral -> return key.value
     }
-    throw SerializeError("Unknown variant key type: ${key}")
+    throw SerializeError("Unknown variant key type: $key")
 }
 
