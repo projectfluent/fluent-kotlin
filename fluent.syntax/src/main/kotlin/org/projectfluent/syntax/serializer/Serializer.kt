@@ -32,6 +32,7 @@ class FluentSerializer(withJunk: Boolean = false) {
         entries@ for (entry in resource.body) {
             val serialized = when (entry) {
                 is Entry -> serializeEntry(entry)
+                is Whitespace -> entry.content
                 is Junk -> {
                     if (this.withJunk) {
                         entry.content
@@ -51,9 +52,9 @@ class FluentSerializer(withJunk: Boolean = false) {
         when (entry) {
             is Message -> return serializeMessage(entry)
             is Term -> return serializeTerm(entry)
-            is Comment -> return "${serializeComment(entry, "#")}\n"
-            is GroupComment -> return "${serializeComment(entry, "##")}\n"
-            is ResourceComment -> return "${serializeComment(entry, "###")}\n"
+            is Comment -> return serializeComment(entry, "#")
+            is GroupComment -> return serializeComment(entry, "##")
+            is ResourceComment -> return serializeComment(entry, "###")
         }
         throw SerializeError("Unknown entry type: ${entry}")
     }

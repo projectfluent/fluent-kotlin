@@ -9,9 +9,37 @@ class SerializerTest {
     val serializer = FluentSerializer()
 
     @Test
-    fun foo() {
+    fun message() {
         val original = """
-            msg = Foo
+            # Attached comment
+            key = Value
+            
+        """.trimIndent()
+        val resource = this.parser.parse(original)
+        val serialized = this.serializer.serialize(resource)
+        assertEquals(original, serialized)
+    }
+
+    @Test
+    fun comment_standalone() {
+        val original = """
+            # Standalone comment
+            
+            key = Value
+            
+        """.trimIndent()
+        val resource = this.parser.parse(original)
+        val serialized = this.serializer.serialize(resource)
+        assertEquals(original, serialized)
+    }
+
+    @Test
+    fun empty_lines() {
+        val original = """
+            key1 = Value 1
+            
+            
+            key2 = Value 2
             
         """.trimIndent()
         val resource = this.parser.parse(original)
