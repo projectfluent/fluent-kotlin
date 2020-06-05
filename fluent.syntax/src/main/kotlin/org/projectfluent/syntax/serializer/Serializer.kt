@@ -15,13 +15,7 @@ fun isSelectExpr(elem: PatternElement): Boolean {
             && elem.expression is SelectExpression
 }
 
-class FluentSerializer(withJunk: Boolean = false) {
-    var withJunk: Boolean = true
-
-    init {
-        this.withJunk = withJunk
-    }
-
+class FluentSerializer(var withJunk: Boolean = false) {
     fun serialize(resource: Resource): String {
         val parts: MutableList<String> = mutableListOf()
 
