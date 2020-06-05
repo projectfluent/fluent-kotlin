@@ -23,10 +23,6 @@ class FluentSerializer(withJunk: Boolean = false) {
     }
 
     fun serialize(resource: Resource): String {
-        if (!(resource is Resource)) {
-            throw  SerializeError("Unknown resource type: ${resource}")
-        }
-
         val parts: MutableList<String> = mutableListOf()
 
         entries@ for (entry in resource.body) {
