@@ -1,24 +1,25 @@
 package org.projectfluent.syntax.ast
 
+import java.lang.reflect.Method
 import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
 abstract class Visitor {
-    val handlers: MutableMap<String, KFunction<*>> = mutableMapOf()
+    val handlers: MutableMap<String, Method> = mutableMapOf()
     init {
-        this::class.memberFunctions.filter {
+        this::class.java.declaredMethods.filter {
             it.name.startsWith("visit_")
         }.map {
             handlers[it.name.substring("visit_".length)] = it
         }
     }
     fun visit(node: BaseNode) {
-        val cName = node::class.simpleName
+        val cName = node::class.java.simpleName
         val handler = this.handlers[cName]
         if (handler != null) {
-            handler.call(this, node)
+            handler.invoke(this, node)
         } else {
             this.generic_visit(node)
         }
