@@ -9,15 +9,15 @@ class TestableVisitor : Visitor() {
     var variantCount = 0
     var wordCount = 0
     val WORDS = Regex("\\w+")
-    fun visit_Pattern(node: Pattern) {
-        super.generic_visit(node)
+    fun visitPattern(node: Pattern) {
+        super.genericVisit(node)
         patternCount++
     }
-    fun visit_Variant(node: Variant) {
-        super.generic_visit(node)
+    fun visitVariant(node: Variant) {
+        super.genericVisit(node)
         variantCount++
     }
-    fun visit_TextElement(node: TextElement) {
+    fun visitTextElement(node: TextElement) {
         wordCount += WORDS.findAll(node.value).count()
     }
 }

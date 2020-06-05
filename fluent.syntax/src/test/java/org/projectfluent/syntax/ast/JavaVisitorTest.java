@@ -17,12 +17,12 @@ class JavaWordCounter extends Visitor {
         return words;
     }
 
-    void visit_Resource(Resource node) {
+    void visitResource(Resource node) {
         System.out.println("resource");
-        this.generic_visit(node);
+        this.genericVisit(node);
     }
 
-    public void visit_TextElement(TextElement node) {
+    public void visitTextElement(TextElement node) {
         String val = node.getValue();
         words += WORD_BOUNDARY.split(val).length;
     }

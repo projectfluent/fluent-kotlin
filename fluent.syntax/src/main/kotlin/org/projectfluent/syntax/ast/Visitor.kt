@@ -10,9 +10,9 @@ abstract class Visitor {
     val handlers: MutableMap<String, Method> = mutableMapOf()
     init {
         this::class.java.declaredMethods.filter {
-            it.name.startsWith("visit_")
+            it.name.startsWith("visit")
         }.map {
-            handlers[it.name.substring("visit_".length)] = it
+            handlers[it.name.substring("visit".length)] = it
         }
     }
     fun visit(node: BaseNode) {
@@ -21,10 +21,10 @@ abstract class Visitor {
         if (handler != null) {
             handler.invoke(this, node)
         } else {
-            this.generic_visit(node)
+            this.genericVisit(node)
         }
     }
-    fun generic_visit(node: BaseNode) {
+    fun genericVisit(node: BaseNode) {
         node::class.memberProperties.forEach {
             if (it.visibility == KVisibility.PUBLIC) {
                 val value = it.getter.call(node)
