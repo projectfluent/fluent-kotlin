@@ -18,7 +18,7 @@ abstract class Visitor {
         val cName = node::class.simpleName
         val handler = this.handlers[cName]
         if (handler != null) {
-            val foo = handler.call(this, node)
+            handler.call(this, node)
         } else {
             this.generic_visit(node)
         }
