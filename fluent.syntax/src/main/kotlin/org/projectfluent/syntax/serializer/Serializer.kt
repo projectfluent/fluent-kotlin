@@ -38,16 +38,26 @@ class FluentSerializer(var withJunk: Boolean = false) {
         return builder
     }
 
-    fun serializeEntry(entry: Entry): CharSequence {
+    fun serialize(entry: TopLevel): CharSequence {
         when (entry) {
-            is Message -> return serializeMessage(entry)
-            is Term -> return serializeTerm(entry)
-            is Comment -> return serializeComment(entry, "#")
-            is GroupComment -> return serializeComment(entry, "##")
-            is ResourceComment -> return serializeComment(entry, "###")
+            is Entry -> return serializeEntry(entry)
+            is Whitespace -> return entry.content
+            is Junk -> return entry.content
         }
-        throw SerializeError("Unknown entry type: $entry")
+        throw SerializeError("Unknown top-level type: $entry")
     }
+}
+
+
+fun serializeEntry(entry: Entry): CharSequence {
+    when (entry) {
+        is Message -> return serializeMessage(entry)
+        is Term -> return serializeTerm(entry)
+        is Comment -> return serializeComment(entry, "#")
+        is GroupComment -> return serializeComment(entry, "##")
+        is ResourceComment -> return serializeComment(entry, "###")
+    }
+    throw SerializeError("Unknown entry type: $entry")
 }
 
 
