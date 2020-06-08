@@ -17,7 +17,7 @@ class SerializerTest {
         """.trimIndent()
         val resource = this.parser.parse(original)
         val serialized = this.serializer.serialize(resource)
-        assertEquals(original, serialized)
+        assertEquals(original, serialized.toString())
     }
 
     @Test
@@ -30,7 +30,7 @@ class SerializerTest {
         """.trimIndent()
         val resource = this.parser.parse(original)
         val serialized = this.serializer.serialize(resource)
-        assertEquals(original, serialized)
+        assertEquals(original, serialized.toString())
     }
 
     @Test
@@ -44,6 +44,6 @@ class SerializerTest {
         """.trimIndent()
         val resource = this.parser.parse(original)
         val serialized = this.serializer.serialize(resource)
-        assertEquals(original, serialized)
+        assertEquals(original, serialized.toString())
     }
 }

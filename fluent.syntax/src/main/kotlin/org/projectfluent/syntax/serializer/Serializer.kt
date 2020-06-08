@@ -2,8 +2,8 @@ package org.projectfluent.syntax.serializer
 
 import org.projectfluent.syntax.ast.*
 
-fun indent(content: String): String {
-    return content.split("\n").joinToString("\n    ")
+fun indent(content: CharSequence): String {
+    return content.lines().joinToString("\n    ")
 }
 
 fun includesLine(elem: PatternElement): Boolean {
@@ -16,7 +16,7 @@ fun isSelectExpr(elem: PatternElement): Boolean {
 }
 
 class FluentSerializer(var withJunk: Boolean = false) {
-    fun serialize(resource: Resource): String {
+    fun serialize(resource: Resource): CharSequence {
         val builder = StringBuilder()
 
         entries@ for (entry in resource.body) {
@@ -35,10 +35,10 @@ class FluentSerializer(var withJunk: Boolean = false) {
             builder.append(serialized)
         }
 
-        return builder.toString()
+        return builder
     }
 
-    fun serializeEntry(entry: Entry): String {
+    fun serializeEntry(entry: Entry): CharSequence {
         when (entry) {
             is Message -> return serializeMessage(entry)
             is Term -> return serializeTerm(entry)
@@ -51,7 +51,7 @@ class FluentSerializer(var withJunk: Boolean = false) {
 }
 
 
-fun serializeComment(comment: BaseComment, prefix: String = "#"): String {
+fun serializeComment(comment: BaseComment, prefix: String = "#"): CharSequence {
     val builder = StringBuilder()
     val lines = comment.content.split("\n")
     for (line in lines) {
@@ -61,11 +61,11 @@ fun serializeComment(comment: BaseComment, prefix: String = "#"): String {
             builder.append(prefix, "\n")
         }
     }
-    return builder.toString()
+    return builder
 }
 
 
-fun serializeMessage(message: Message): String {
+fun serializeMessage(message: Message): CharSequence {
     val builder = StringBuilder()
 
     message.comment?.let {
@@ -83,11 +83,11 @@ fun serializeMessage(message: Message): String {
     }
 
     builder.append("\n")
-    return builder.toString()
+    return builder
 }
 
 
-fun serializeTerm(term: Term): String {
+fun serializeTerm(term: Term): CharSequence {
     val builder = StringBuilder()
 
     term.comment?.let {
@@ -102,31 +102,32 @@ fun serializeTerm(term: Term): String {
     }
 
     builder.append("\n")
-    return builder.toString()
+    return builder
 }
 
 
-fun serializeAttribute(attribute: Attribute): String {
+fun serializeAttribute(attribute: Attribute): CharSequence {
     val value = indent(serializePattern(attribute.value))
     return "\n    .${attribute.id.name} =$value"
 }
 
 
-fun serializePattern(pattern: Pattern): String {
-    val content = pattern.elements.map(::serializeElement).joinToString("")
+fun serializePattern(pattern: Pattern): CharSequence {
     val startOnLine =
             pattern.elements.any(::isSelectExpr) ||
                     pattern.elements.any(::includesLine)
+    val elements = pattern.elements.map(::serializeElement)
+    val content = indent(elements.joinToString(""))
 
     if (startOnLine) {
-        return "\n    ${indent(content)}"
+        return "\n    $content"
     }
 
     return " $content"
 }
 
 
-fun serializeElement(element: PatternElement): String {
+fun serializeElement(element: PatternElement): CharSequence {
     when (element) {
         is TextElement -> return element.value
         is Placeable -> return serializePlaceable(element)
@@ -135,7 +136,7 @@ fun serializeElement(element: PatternElement): String {
 }
 
 
-fun serializePlaceable(placeable: Placeable): String {
+fun serializePlaceable(placeable: Placeable): CharSequence {
     val expr = placeable.expression
     when (expr) {
         is Placeable -> return "{${serializePlaceable(expr)}}"
@@ -148,7 +149,7 @@ fun serializePlaceable(placeable: Placeable): String {
 }
 
 
-fun serializeExpression(expr: Expression): String {
+fun serializeExpression(expr: Expression): CharSequence {
     when (expr) {
         is StringLiteral -> return "\"${expr.value}\""
         is NumberLiteral -> return expr.value
@@ -162,7 +163,7 @@ fun serializeExpression(expr: Expression): String {
             expr.arguments?.let {
                 builder.append(serializeCallArguments(it))
             }
-            return builder.toString()
+            return builder
         }
         is MessageReference -> {
             val builder = StringBuilder()
@@ -170,7 +171,7 @@ fun serializeExpression(expr: Expression): String {
             expr.attribute?.let {
                 builder.append(".", it.name)
             }
-            return builder.toString()
+            return builder
         }
         is FunctionReference ->
             return "${expr.id.name}${serializeCallArguments(expr.arguments)}"
@@ -182,14 +183,14 @@ fun serializeExpression(expr: Expression): String {
                 builder.append(serializeVariant(variant))
             }
             builder.append("\n")
-            return builder.toString()
+            return builder
         }
     }
     throw SerializeError("Unknown expression type: $expr")
 }
 
 
-fun serializeVariant(variant: Variant): String {
+fun serializeVariant(variant: Variant): CharSequence {
     val key = serializeVariantKey(variant.key)
     val value = indent(serializePattern(variant.value))
 
@@ -201,9 +202,9 @@ fun serializeVariant(variant: Variant): String {
 }
 
 
-fun serializeCallArguments(expr: CallArguments): String {
-    val positional = expr.positional.map(::serializeExpression).joinToString(", ")
-    val named = expr.named.map(::serializeNamedArgument).joinToString(", ")
+fun serializeCallArguments(expr: CallArguments): CharSequence {
+    val positional = expr.positional.joinToString(", ", transform = ::serializeExpression)
+    val named = expr.named.joinToString(", ", transform = ::serializeNamedArgument)
     if (expr.positional.size > 0 && expr.named.size > 0) {
         return "($positional, $named)"
     }
@@ -217,12 +218,12 @@ fun serializeCallArguments(expr: CallArguments): String {
 }
 
 
-fun serializeNamedArgument(arg: NamedArgument): String {
+fun serializeNamedArgument(arg: NamedArgument): CharSequence {
     val value = serializeExpression(arg.value)
     return "${arg.name.name}: $value"
 }
 
-fun serializeVariantKey(key: VariantKey): String {
+fun serializeVariantKey(key: VariantKey): CharSequence {
     when (key) {
         is Identifier -> return key.name
         is NumberLiteral -> return key.value
