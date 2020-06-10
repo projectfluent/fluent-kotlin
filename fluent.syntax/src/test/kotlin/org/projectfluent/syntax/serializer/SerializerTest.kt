@@ -251,6 +251,129 @@ class SerializeResourceTest : SerializerTest() {
         """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
+
+    @Test
+    fun select_expression() {
+        val input = """
+            foo =
+                { ${'$'}sel ->
+                   *[a] A
+                    [b] B
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun multiline_variant() {
+        val input = """
+            foo =
+                { ${'$'}sel ->
+                   *[a]
+                        AAA
+                        BBB
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun multiline_variant_with_first_line_inline() {
+        val input = """
+            foo =
+                { ${'$'}sel ->
+                   *[a] AAA
+                        BBB
+                }
+            
+        """.trimIndent()
+        val expected = """
+            foo =
+                { ${'$'}sel ->
+                   *[a]
+                        AAA
+                        BBB
+                }
+            
+        """.trimIndent()
+        assertEquals(expected, this.pretty(input))
+    }
+
+    @Test
+    fun variant_key_number() {
+        val input = """
+            foo =
+                { ${'$'}sel ->
+                   *[1] 1
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun select_expression_in_block_pattern() {
+        val input = """
+            foo =
+                Foo { ${'$'}sel ->
+                   *[a] A
+                    [b] B
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun select_expression_in_inline_pattern() {
+        val input = """
+            foo = Foo { ${'$'}sel ->
+                   *[a] A
+                    [b] B
+                }
+            
+        """.trimIndent()
+        val expected = """
+            foo =
+                Foo { ${'$'}sel ->
+                   *[a] A
+                    [b] B
+                }
+            
+        """.trimIndent()
+        assertEquals(expected, this.pretty(input))
+    }
+
+    @Test
+    fun select_expression_in_multiline_pattern() {
+        val input = """
+            foo =
+                Foo
+                Bar { ${'$'}sel ->
+                   *[a] A
+                    [b] B
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun nested_select_expression() {
+        val input = """
+            foo =
+                { ${'$'}a ->
+                   *[a]
+                        { ${'$'}b ->
+                           *[b] Foo
+                        }
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
 }
 
 class SerializeEntryTest : SerializerTest() {
