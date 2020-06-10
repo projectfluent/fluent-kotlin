@@ -388,7 +388,9 @@ class FluentParser(withSpans: Boolean = false) {
                 else -> elements.add(this.getTextElement(ps))
             }
         }
-        return Pattern(*elements.toTypedArray())
+
+        val dedented = this.dedent(elements, commonIndentLength)
+        return Pattern(*dedented.toTypedArray())
     }
 
     // Create a token representing an indent. It's not part of the AST and it will
