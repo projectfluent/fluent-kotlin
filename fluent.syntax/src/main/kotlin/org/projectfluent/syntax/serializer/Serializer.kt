@@ -46,6 +46,10 @@ class FluentSerializer(var withJunk: Boolean = false) {
         }
         throw SerializeError("Unknown top-level type: $entry")
     }
+
+    fun serialize(expr: Expression): CharSequence {
+        return serializeExpression(expr)
+    }
 }
 
 

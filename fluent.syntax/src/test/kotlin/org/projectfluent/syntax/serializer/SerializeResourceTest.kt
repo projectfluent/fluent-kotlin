@@ -76,6 +76,15 @@ class SerializeResourceTest : SerializerTest() {
     }
 
     @Test
+    fun message_attribute_reference() {
+        val input = """
+            foo = Foo { bar.baz }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
     fun term_reference() {
         val input = """
             foo = Foo { -bar }
@@ -106,15 +115,6 @@ class SerializeResourceTest : SerializerTest() {
     fun string_literal() {
         val input = """
             foo = Foo { "bar" }
-            
-        """.trimIndent()
-        assertEquals(input, this.pretty(input))
-    }
-
-    @Test
-    fun message_reference_with_attribute() {
-        val input = """
-            foo = Foo { bar.baz }
             
         """.trimIndent()
         assertEquals(input, this.pretty(input))
