@@ -423,6 +423,105 @@ class SerializeResourceTest : SerializerTest() {
         assertEquals(input, this.pretty(input))
     }
 
+    @Test
+    fun call_expression() {
+        val input = """
+            foo = { FOO() }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_string_literal() {
+        val input = """
+            foo = { FOO("bar") }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_number_literal() {
+        val input = """
+            foo = { FOO(1) }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_message_reference() {
+        val input = """
+            foo = { FOO(bar) }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_variable_reference() {
+        val input = """
+            foo = { FOO(${'$'}bar) }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_named_number_literal() {
+        val input = """
+            foo = { FOO(bar: 1) }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_named_string_literal() {
+        val input = """
+            foo = { FOO(bar: "bar") }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_two_positional_arguments() {
+        val input = """
+            foo = { FOO(bar, baz) }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_two_named_arguments() {
+        val input = """
+            foo = { FOO(bar: "bar", baz: "baz") }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun call_expression_with_positional_and_named_arguments() {
+        val input = """
+            foo = { FOO(bar, 1, baz: "baz") }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun term_reference_call() {
+        val input = """
+            foo = { -term() }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
 }
 
 class SerializeEntryTest : SerializerTest() {
