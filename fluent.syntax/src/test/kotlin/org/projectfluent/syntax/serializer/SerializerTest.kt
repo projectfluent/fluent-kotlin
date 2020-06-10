@@ -76,6 +76,123 @@ class SerializeResourceTest {
     }
 
     @Test
+    fun message_reference() {
+        val input = """
+            foo = Foo { bar }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun term_reference() {
+        val input = """
+            foo = Foo { -bar }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun variable_reference() {
+        val input = """
+            foo = Foo { ${'$'}bar }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun number_literal() {
+        val input = """
+            foo = Foo { 1 }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun string_literal() {
+        val input = """
+            foo = Foo { "bar" }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun message_reference_with_attribute() {
+        val input = """
+            foo = Foo { bar.baz }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun resource_comment() {
+        val input = """
+            ### A multiline
+            ### resource comment.
+            
+            foo = Foo
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun group_comment() {
+        val input = """
+            foo = Foo
+            
+            ## Comment Header
+            ##
+            ## A multiline
+            ## group comment
+            
+            bar = Bar
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun message_comment() {
+        val input = """
+            # A multiline
+            # message comment.
+            foo = Foo
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun standalone_comment() {
+        val input = """
+            foo = Foo
+            
+            # A standalone comment
+            
+            bar = Bar
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun multiline_with_placeable() {
+        val input = """
+            foo =
+                Foo { bar }
+                Baz
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
     fun empty_lines() {
         val original = """
             key1 = Value 1

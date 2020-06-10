@@ -446,7 +446,11 @@ class FluentParser(withSpans: Boolean = false) {
                     if (start != null && end != null) textElement.addSpan(start, end)
                 }
                 trimmed.add(textElement)
-            } else trimmed.add(element)
+                continue
+            }
+
+            // The element is a TextElement or a Placeable
+            trimmed.add(element)
         }
 
         // Trim trailing whitespace from the Pattern.
