@@ -522,6 +522,41 @@ class SerializeResourceTest : SerializerTest() {
         assertEquals(input, this.pretty(input))
     }
 
+    @Test
+    fun nested_placeable() {
+        val input = """
+            foo = {{ FOO() }}
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun backslash_in_text_element() {
+        val input = """
+            foo = \{ placeable }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun escaped_special_char_in_string_literal() {
+        val input = """
+            foo = { "Escaped \" quote" }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun unicode_escape_sequence() {
+        val input = """
+            foo = { "\u0065" }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
 }
 
 class SerializeEntryTest : SerializerTest() {
