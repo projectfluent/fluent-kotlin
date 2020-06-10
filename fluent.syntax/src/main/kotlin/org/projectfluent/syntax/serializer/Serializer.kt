@@ -51,6 +51,10 @@ class FluentSerializer(var withJunk: Boolean = false) {
         return serializeExpression(expr)
     }
 
+    fun serialize(key: VariantKey): CharSequence {
+        return serializeVariantKey(key)
+    }
+
     private fun serializeEntry(entry: Entry): CharSequence {
         when (entry) {
             is Message -> return serializeMessage(entry)

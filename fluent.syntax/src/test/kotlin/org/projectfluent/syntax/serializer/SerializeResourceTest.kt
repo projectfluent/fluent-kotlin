@@ -2,8 +2,22 @@ package org.projectfluent.syntax.serializer
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.projectfluent.syntax.ast.Resource
+import org.projectfluent.syntax.parser.FluentParser
 
-class SerializeResourceTest : SerializerTest() {
+class SerializeResourceTest {
+    private val parser = FluentParser()
+    private val serializer = FluentSerializer()
+
+    private fun parse(input: String): Resource {
+        return this.parser.parse(input)
+    }
+
+    private fun pretty(input: String): String {
+        val resource = this.parse(input)
+        val serialized = this.serializer.serialize(resource)
+        return serialized.toString()
+    }
 
     @Test
     fun simple_message_without_eol() {

@@ -2,28 +2,26 @@ package org.projectfluent.syntax.serializer
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectfluent.syntax.ast.Entry
 import org.projectfluent.syntax.ast.Expression
 import org.projectfluent.syntax.ast.Message
 import org.projectfluent.syntax.ast.Placeable
+import org.projectfluent.syntax.parser.FluentParser
 
-class SerializeExpressionTest : SerializerTest() {
+class SerializeExpressionTest {
+    private val parser = FluentParser()
+    private val serializer = FluentSerializer()
 
-    override fun pretty(input: String): String {
+    private fun parse(input: String): Expression {
         val resource = this.parser.parse(input)
-        val first = resource.body[0]
-        if (first is Message) {
-            val element = first.value?.elements?.get(0)
-            if (element is Placeable) {
-                val expr = element.expression as Expression
-                val serialized = this.serializer.serialize(expr)
-                return serialized.toString()
-            }
-        }
-        throw Exception("""
-            The first entry of the resource must be a message and the first element
-            of its value must be a placeable with an expression.
-        """.trimIndent())
+        val first = resource.body[0] as Message
+        val element = first.value?.elements?.get(0) as Placeable
+        return element.expression as Expression
+    }
+
+    private fun pretty(input: String): String {
+        val first = this.parse(input)
+        val serialized = this.serializer.serialize(first)
+        return serialized.toString()
     }
 
     @Test
