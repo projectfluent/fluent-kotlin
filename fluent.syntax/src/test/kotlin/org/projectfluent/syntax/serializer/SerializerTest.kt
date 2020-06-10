@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectfluent.syntax.parser.FluentParser
 
-class SerializeResourceTest {
+abstract class SerializerTest {
     private val parser = FluentParser()
     private val serializer = FluentSerializer()
 
@@ -13,6 +13,9 @@ class SerializeResourceTest {
         val serialized = this.serializer.serialize(resource)
         return serialized.toString()
     }
+}
+
+class SerializeResourceTest : SerializerTest() {
 
     @Test
     fun simple_message_without_eol() {
@@ -192,34 +195,77 @@ class SerializeResourceTest {
         assertEquals(input, this.pretty(input))
     }
 
+}
+
+class SerializeEntryTest : SerializerTest() {
+
+    @Test
+    fun message() {
+        val input = """
+            # Attached comment
+            key = Value
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+}
+
+class SerializeWhitespaceTest : SerializerTest() {
+
     @Test
     fun empty_lines() {
-        val original = """
+        val input = """
             key1 = Value 1
             
             
             key2 = Value 2
             
         """.trimIndent()
-        val resource = this.parser.parse(original)
-        val serialized = this.serializer.serialize(resource)
-        assertEquals(original, serialized.toString())
+        assertEquals(input, this.pretty(input))
     }
-}
-
-class SerializeEntryTest {
-    private val parser = FluentParser()
-    private val serializer = FluentSerializer()
 
     @Test
-    fun message() {
-        val original = """
-            # Attached comment
-            key = Value
+    fun standalone_comment() {
+        val input = """
+            # Comment A
+            
+            foo = Foo
+            
+            # Comment B
+            
+            bar = Bar 2
             
         """.trimIndent()
-        val entry = this.parser.parse(original).body[0]
-        val serialized = this.serializer.serialize(entry)
-        assertEquals(original, serialized.toString())
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun group_comment() {
+        val input = """
+            ## Group A
+            
+            foo = Foo
+            
+            ## Group B
+            
+            bar = Bar 2
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun resource_comment() {
+        val input = """
+            ### Resource Comment A
+            
+            foo = Foo
+            
+            ### Resource Comment B
+            
+            bar = Bar 2
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
     }
 }
