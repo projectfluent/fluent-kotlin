@@ -374,6 +374,55 @@ class SerializeResourceTest : SerializerTest() {
         """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
+
+    @Test
+    fun selector_variable_reference() {
+        val input = """
+            foo =
+                { ${'$'}bar ->
+                   *[a] A
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun selector_number_literal() {
+        val input = """
+            foo =
+                { 1 ->
+                   *[a] A
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun selector_string_literal() {
+        val input = """
+            foo =
+                { "bar" ->
+                   *[a] A
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun selector_term_attribute_reference() {
+        val input = """
+            foo =
+                { -bar.baz ->
+                   *[a] A
+                }
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
 }
 
 class SerializeEntryTest : SerializerTest() {
