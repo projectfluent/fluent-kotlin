@@ -195,6 +195,62 @@ class SerializeResourceTest : SerializerTest() {
         assertEquals(input, this.pretty(input))
     }
 
+    @Test
+    fun attribute() {
+        val input = """
+            foo =
+                .attr = Foo Attr
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun multiline_attribute() {
+        val input = """
+            foo =
+                .attr =
+                    Foo Attr
+                    Continued
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun two_attribute() {
+        val input = """
+            foo =
+                .attr-a = Foo Attr A
+                .attr-b = Foo Attr B
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun value_and_attributes() {
+        val input = """
+            foo = Foo Value
+                .attr-a = Foo Attr A
+                .attr-b = Foo Attr B
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun multiline_value_and_attributes() {
+        val input = """
+            foo =
+                Foo Value
+                Continued
+                .attr-a = Foo Attr A
+                .attr-b = Foo Attr B
+            
+        """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
 }
 
 class SerializeEntryTest : SerializerTest() {
