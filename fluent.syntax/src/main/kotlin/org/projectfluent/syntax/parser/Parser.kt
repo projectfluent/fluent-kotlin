@@ -388,7 +388,9 @@ class FluentParser(withSpans: Boolean = false) {
                 else -> elements.add(this.getTextElement(ps))
             }
         }
-        return Pattern(*elements.toTypedArray())
+
+        val dedented = this.dedent(elements, commonIndentLength)
+        return Pattern(*dedented.toTypedArray())
     }
 
     // Create a token representing an indent. It's not part of the AST and it will
@@ -444,7 +446,11 @@ class FluentParser(withSpans: Boolean = false) {
                     if (start != null && end != null) textElement.addSpan(start, end)
                 }
                 trimmed.add(textElement)
-            } else trimmed.add(element)
+                continue
+            }
+
+            // The element is a TextElement or a Placeable
+            trimmed.add(element)
         }
 
         // Trim trailing whitespace from the Pattern.

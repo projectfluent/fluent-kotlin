@@ -114,7 +114,7 @@ class NumberLiteral : VariantKey, Literal {
 
 data class MessageReference(var id: Identifier, var attribute: Identifier? = null) : Expression()
 
-data class TermReference(var id: Identifier, var attribute: Identifier? = null, var args: CallArguments? = null) : Expression()
+data class TermReference(var id: Identifier, var attribute: Identifier? = null, var arguments: CallArguments? = null) : Expression()
 
 data class VariableReference(var id: Identifier) : Expression()
 
