@@ -3,7 +3,7 @@ package org.projectfluent.syntax.serializer
 import org.projectfluent.syntax.ast.*
 
 fun indent(content: CharSequence): String {
-    return content.lines().joinToString("\n    ")
+    return content.split("\n").joinToString("\n    ")
 }
 
 fun includesLine(elem: PatternElement): Boolean {
