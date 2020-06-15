@@ -2,21 +2,17 @@ package org.projectfluent.syntax.parser
 
 import org.projectfluent.syntax.ast.*
 
-var trailingWSRe = Regex("[ \t\n\r]+$/")
+var trailingWSRe = Regex("[ \t\n\r]+\$")
 val VALID_FUNCTION_NAME = Regex("^[A-Z][A-Z0-9_-]*\$")
 
-class FluentParser(withSpans: Boolean = false) {
-    var withSpans: Boolean = true
-    init {
-        this.withSpans = withSpans
-    }
+class FluentParser(var withSpans: Boolean = false) {
 
     fun parse(source: String): Resource {
-        var ps = FluentStream(source)
-        var entries: MutableList<TopLevel> = mutableListOf()
+        val ps = FluentStream(source)
+        val entries: MutableList<TopLevel> = mutableListOf()
         var lastComment: Comment? = null
         var blankLines = ps.skipBlankBlock()
-        if (blankLines.length > 0) {
+        if (blankLines.isNotEmpty()) {
             entries.add(Whitespace(blankLines))
         }
         while (ps.currentChar() != null) {
@@ -29,7 +25,7 @@ class FluentParser(withSpans: Boolean = false) {
             // Consequently, we only attach Comments once we know that the Message
             // or the Term parsed successfully.
             if (entry is Comment &&
-                blankLines.length == 0 &&
+                blankLines.isEmpty() &&
                 ps.currentChar() != EOF
             ) {
                 // Stash the comment and decide what to do with it in the next pass.
@@ -49,14 +45,14 @@ class FluentParser(withSpans: Boolean = false) {
 
             // No special logic for other types of entries.
             entries.add(entry)
-            if (blankLines.length > 0) {
+            if (blankLines.isNotEmpty()) {
                 entries.add(Whitespace(blankLines))
             }
         }
         return Resource(*entries.toTypedArray())
     }
 
-    fun getEntryOrJunk(ps: FluentStream): TopLevel {
+    private fun getEntryOrJunk(ps: FluentStream): TopLevel {
         val entryStartPos = ps.index
 
         try {
@@ -74,7 +70,7 @@ class FluentParser(withSpans: Boolean = false) {
             }
 
             // Create a Junk instance
-            var slice = ps.string.substring(entryStartPos, nextEntryStart)
+            val slice = ps.string.substring(entryStartPos, nextEntryStart)
             val junk = Junk(slice)
             val annot = Annotation(err.code, err.message ?: "")
             annot.args.addAll(err.args)
@@ -84,7 +80,7 @@ class FluentParser(withSpans: Boolean = false) {
         }
     }
 
-    fun getEntry(ps: FluentStream): Entry {
+    private fun getEntry(ps: FluentStream): Entry {
         if (ps.currentChar() == '#') {
             return this.getComment(ps)
         }
@@ -100,7 +96,7 @@ class FluentParser(withSpans: Boolean = false) {
         throw ParseError("E0002")
     }
 
-    fun getComment(ps: FluentStream): BaseComment {
+    private fun getComment(ps: FluentStream): BaseComment {
         // 0 - comment
         // 1 - group comment
         // 2 - resource comment
@@ -143,7 +139,7 @@ class FluentParser(withSpans: Boolean = false) {
         }
     }
 
-    fun getMessage(ps: FluentStream): Message {
+    private fun getMessage(ps: FluentStream): Message {
         val id = this.getIdentifier(ps)
 
         ps.skipBlankInline()
@@ -152,7 +148,7 @@ class FluentParser(withSpans: Boolean = false) {
         val value = this.maybeGetPattern(ps)
         val attrs = this.getAttributes(ps)
 
-        if (value == null && attrs.size == 0) {
+        if (value == null && attrs.isEmpty()) {
             throw ParseError("E0005", id.name)
         }
 
@@ -161,7 +157,7 @@ class FluentParser(withSpans: Boolean = false) {
         return msg
     }
 
-    fun getTerm(ps: FluentStream): Term {
+    private fun getTerm(ps: FluentStream): Term {
         ps.expectChar('-')
         val id = this.getIdentifier(ps)
 
@@ -179,7 +175,7 @@ class FluentParser(withSpans: Boolean = false) {
         return term
     }
 
-    fun getAttribute(ps: FluentStream): Attribute {
+    private fun getAttribute(ps: FluentStream): Attribute {
         ps.expectChar('.')
 
         val key = this.getIdentifier(ps)
@@ -187,15 +183,12 @@ class FluentParser(withSpans: Boolean = false) {
         ps.skipBlankInline()
         ps.expectChar('=')
 
-        val value = this.maybeGetPattern(ps)
-        if (value == null) {
-            throw ParseError("E0012")
-        }
+        val value = this.maybeGetPattern(ps) ?: throw ParseError("E0012")
 
         return Attribute(key, value)
     }
 
-    fun getAttributes(ps: FluentStream): Collection<Attribute> {
+    private fun getAttributes(ps: FluentStream): Collection<Attribute> {
         val attrs: MutableList<Attribute> = mutableListOf()
         ps.peekBlank()
         while (ps.isAttributeStart()) {
@@ -207,7 +200,7 @@ class FluentParser(withSpans: Boolean = false) {
         return attrs
     }
 
-    fun getIdentifier(ps: FluentStream): Identifier {
+    private fun getIdentifier(ps: FluentStream): Identifier {
         var name = "" + ps.takeIDStart()
         var ch = ps.takeIDChar()
         while (ch != null) {
@@ -217,23 +210,19 @@ class FluentParser(withSpans: Boolean = false) {
         return Identifier(name)
     }
 
-    fun getVariantKey(ps: FluentStream): VariantKey {
-        val ch = ps.currentChar()
-
-        if (ch == null) {
-            throw ParseError("E0013")
-        }
+    private fun getVariantKey(ps: FluentStream): VariantKey {
+        val ch = ps.currentChar() ?: throw ParseError("E0013")
 
         val cc = ch.toInt()
 
-        if ((cc >= 48 && cc <= 57) || cc == 45) { // 0-9, -
+        if ((cc in 48..57) || cc == 45) { // 0-9, -
             return this.getNumber(ps)
         }
 
         return this.getIdentifier(ps)
     }
 
-    fun getVariant(ps: FluentStream, hasDefault: Boolean = false): Variant {
+    private fun getVariant(ps: FluentStream, hasDefault: Boolean = false): Variant {
         var defaultIndex = false
 
         if (ps.currentChar() == '*') {
@@ -253,15 +242,12 @@ class FluentParser(withSpans: Boolean = false) {
         ps.skipBlank()
         ps.expectChar(']')
 
-        val value = this.maybeGetPattern(ps)
-        if (value == null) {
-            throw ParseError("E0012")
-        }
+        val value = this.maybeGetPattern(ps) ?: throw ParseError("E0012")
 
         return Variant(key, value, defaultIndex)
     }
 
-    fun getVariants(ps: FluentStream): MutableList<Variant> {
+    private fun getVariants(ps: FluentStream): MutableList<Variant> {
         val variants: MutableList<Variant> = mutableListOf()
         var hasDefault = false
 
@@ -289,7 +275,7 @@ class FluentParser(withSpans: Boolean = false) {
         return variants
     }
 
-    fun getDigits(ps: FluentStream): String {
+    private fun getDigits(ps: FluentStream): String {
         var num = ""
 
         var ch = ps.takeDigit()
@@ -298,21 +284,21 @@ class FluentParser(withSpans: Boolean = false) {
             ch = ps.takeDigit()
         }
 
-        if (num.length == 0) {
+        if (num.isEmpty()) {
             throw ParseError("E0004", "0-9")
         }
 
         return num
     }
 
-    fun getNumber(ps: FluentStream): NumberLiteral {
+    private fun getNumber(ps: FluentStream): NumberLiteral {
         var value = ""
 
-        if (ps.currentChar() == '-') {
+        value += if (ps.currentChar() == '-') {
             ps.next()
-            value += "-${this.getDigits(ps)}"
+            "-${this.getDigits(ps)}"
         } else {
-            value += this.getDigits(ps)
+            this.getDigits(ps)
         }
 
         if (ps.currentChar() == '.') {
@@ -329,7 +315,7 @@ class FluentParser(withSpans: Boolean = false) {
     // patterns). The distinction is important for the dedentation logic: the
     // indent of the first line of a block pattern must be taken into account when
     // calculating the maximum common indent.
-    fun maybeGetPattern(ps: FluentStream): Pattern? {
+    private fun maybeGetPattern(ps: FluentStream): Pattern? {
         ps.peekBlankInline()
         if (ps.isValueStart()) {
             ps.skipToPeek()
@@ -345,18 +331,17 @@ class FluentParser(withSpans: Boolean = false) {
         return null
     }
 
-    fun getPattern(ps: FluentStream, isBlock: Boolean): Pattern {
+    private fun getPattern(ps: FluentStream, isBlock: Boolean): Pattern {
         val elements: MutableList<PatternElement> = mutableListOf()
-        var commonIndentLength: Int
-        if (isBlock) {
+        var commonIndentLength = if (isBlock) {
             // A block pattern is a pattern which starts on a new line. Store and
             // measure the indent of this first line for the dedentation logic.
             val blankStart = ps.index
             val firstIndent = ps.skipBlankInline()
             elements.add(this.getIndent(ps, firstIndent, blankStart))
-            commonIndentLength = firstIndent.length
+            firstIndent.length
         } else {
-            commonIndentLength = Int.MAX_VALUE
+            Int.MAX_VALUE
         }
 
         var ch: Char?
@@ -365,12 +350,12 @@ class FluentParser(withSpans: Boolean = false) {
             if (ch == null) break
             when (ch) {
                 EOL -> {
-                    var blankStart = ps.index
-                    var blankLines = ps.peekBlankBlock()
+                    val blankStart = ps.index
+                    val blankLines = ps.peekBlankBlock()
                     if (ps.isValueContinuation()) {
                         ps.skipToPeek()
                         val indent = ps.skipBlankInline()
-                        commonIndentLength = Math.min(commonIndentLength, indent.length)
+                        commonIndentLength = minOf(commonIndentLength, indent.length)
                         elements.add(this.getIndent(ps, blankLines + indent, blankStart))
                         continue@elements
                     }
@@ -396,13 +381,13 @@ class FluentParser(withSpans: Boolean = false) {
     // Create a token representing an indent. It's not part of the AST and it will
     // be trimmed and merged into adjacent TextElements, or turned into a new
     // TextElement, if it's surrounded by two Placeables.
-    fun getIndent(ps: FluentStream, value: String, start: Int): Indent {
+    private fun getIndent(ps: FluentStream, value: String, start: Int): Indent {
         return Indent(value, start, ps.index)
     }
 
     // Dedent a list of elements by removing the maximum common indent from the
     // beginning of text lines. The common indent is calculated in getPattern.
-    fun dedent(elements: Collection<PatternElement>, commonIndent: Int): List<PatternElement> {
+    private fun dedent(elements: Collection<PatternElement>, commonIndent: Int): List<PatternElement> {
         val trimmed: MutableList<PatternElement> = mutableListOf()
 
         for (element in elements) {
@@ -416,7 +401,7 @@ class FluentParser(withSpans: Boolean = false) {
                 element.value = element.value.slice(
                     0 until (element.value.length - commonIndent)
                 )
-                if (element.value.length == 0) {
+                if (element.value.isEmpty()) {
                     continue
                 }
             }
@@ -457,7 +442,7 @@ class FluentParser(withSpans: Boolean = false) {
         val lastElement = trimmed.last()
         if (lastElement is TextElement) {
             lastElement.value = lastElement.value.replace(trailingWSRe, "")
-            if (lastElement.value.length == 0) {
+            if (lastElement.value.isEmpty()) {
                 trimmed.removeAt(trimmed.size - 1)
             }
         }
@@ -465,7 +450,7 @@ class FluentParser(withSpans: Boolean = false) {
         return trimmed
     }
 
-    fun getTextElement(ps: FluentStream): TextElement {
+    private fun getTextElement(ps: FluentStream): TextElement {
         var buffer = ""
         var ch: Char?
         while (true) {
@@ -480,10 +465,9 @@ class FluentParser(withSpans: Boolean = false) {
         return TextElement(buffer)
     }
 
-    fun getEscapeSequence(ps: FluentStream): String {
-        val next = ps.currentChar()
+    private fun getEscapeSequence(ps: FluentStream): String {
 
-        return when (next) {
+        return when (val next = ps.currentChar()) {
             '\\', '"' -> {
                 ps.next()
                 "\\$next"
@@ -494,7 +478,7 @@ class FluentParser(withSpans: Boolean = false) {
         }
     }
 
-    fun getUnicodeEscapeSequence(
+    private fun getUnicodeEscapeSequence(
         ps: FluentStream,
         u: Char,
         digits: Int
@@ -504,12 +488,9 @@ class FluentParser(withSpans: Boolean = false) {
         var sequence = ""
         for (i in 0 until digits) {
             val ch = ps.takeHexDigit()
-
-            if (ch == null) {
-                throw ParseError(
+                ?: throw ParseError(
                     "E0026", "\\${u}${sequence}${ps.currentChar()}"
                 )
-            }
 
             sequence += ch
         }
@@ -517,7 +498,7 @@ class FluentParser(withSpans: Boolean = false) {
         return "\\${u}$sequence"
     }
 
-    fun getPlaceable(ps: FluentStream): PatternElement {
+    private fun getPlaceable(ps: FluentStream): PatternElement {
         ps.expectChar('{')
         ps.skipBlank()
         val expression = when (ps.currentChar()) {
@@ -532,7 +513,7 @@ class FluentParser(withSpans: Boolean = false) {
         return Placeable(expression as InsidePlaceable)
     }
 
-    fun getExpression(ps: FluentStream): Expression {
+    private fun getExpression(ps: FluentStream): Expression {
         val selector = this.getInlineExpression(ps)
         ps.skipBlank()
 
@@ -574,7 +555,7 @@ class FluentParser(withSpans: Boolean = false) {
         return selector
     }
 
-    fun getInlineExpression(ps: FluentStream): Expression {
+    private fun getInlineExpression(ps: FluentStream): Expression {
         if (ps.isNumberStart()) {
             return this.getNumber(ps)
         }
@@ -636,7 +617,7 @@ class FluentParser(withSpans: Boolean = false) {
         throw ParseError("E0028")
     }
 
-    fun getCallArgument(ps: FluentStream): CallArgument {
+    private fun getCallArgument(ps: FluentStream): CallArgument {
         val exp = this.getInlineExpression(ps)
 
         ps.skipBlank()
@@ -656,7 +637,7 @@ class FluentParser(withSpans: Boolean = false) {
         throw ParseError("E0009")
     }
 
-    fun getCallArguments(ps: FluentStream): CallArguments {
+    private fun getCallArguments(ps: FluentStream): CallArguments {
         val positional: MutableList<Expression> = mutableListOf()
         val named: MutableList<NamedArgument> = mutableListOf()
         val argumentNames: MutableSet<String> = mutableSetOf()
@@ -669,8 +650,7 @@ class FluentParser(withSpans: Boolean = false) {
                 break
             }
 
-            val arg = this.getCallArgument(ps)
-            when (arg) {
+            when (val arg = this.getCallArgument(ps)) {
                 is NamedArgument -> {
                     if (argumentNames.contains(arg.name.name)) {
                         throw ParseError("E0022")
@@ -704,7 +684,7 @@ class FluentParser(withSpans: Boolean = false) {
         return args
     }
 
-    fun getString(ps: FluentStream): StringLiteral {
+    private fun getString(ps: FluentStream): StringLiteral {
         ps.expectChar('"')
         var value = ""
 
@@ -728,7 +708,7 @@ class FluentParser(withSpans: Boolean = false) {
         return StringLiteral(value)
     }
 
-    fun getLiteral(ps: FluentStream): Literal {
+    private fun getLiteral(ps: FluentStream): Literal {
         if (ps.isNumberStart()) {
             return this.getNumber(ps)
         }
