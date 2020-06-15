@@ -27,128 +27,142 @@ class SerializeResourceTest {
 
     @Test
     fun simple_message() {
-        val input = """
+        val input =
+            """
             foo = Foo
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun simple_term() {
-        val input = """
+        val input =
+            """
             -foo = Foo
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun two_simple_messages() {
-        val input = """
+        val input =
+            """
             foo = Foo
             bar = Bar
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun block_multiline_message() {
-        val input = """
+        val input =
+            """
             foo =
                 Foo
                 Bar
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun inline_multiline_message() {
-        val input = """
+        val input =
+            """
             foo = Foo
                 Bar
             
-        """.trimIndent()
-        val expected = """
+            """.trimIndent()
+        val expected =
+            """
             foo =
                 Foo
                 Bar
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(expected, this.pretty(input))
     }
 
     @Test
     fun message_reference() {
-        val input = """
+        val input =
+            """
             foo = Foo { bar }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun message_attribute_reference() {
-        val input = """
+        val input =
+            """
             foo = Foo { bar.baz }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun term_reference() {
-        val input = """
+        val input =
+            """
             foo = Foo { -bar }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun variable_reference() {
-        val input = """
+        val input =
+            """
             foo = Foo { ${'$'}bar }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun number_literal() {
-        val input = """
+        val input =
+            """
             foo = Foo { 1 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun string_literal() {
-        val input = """
+        val input =
+            """
             foo = Foo { "bar" }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun resource_comment() {
-        val input = """
+        val input =
+            """
             ### A multiline
             ### resource comment.
             
             foo = Foo
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun group_comment() {
-        val input = """
+        val input =
+            """
             foo = Foo
             
             ## Comment Header
@@ -158,118 +172,128 @@ class SerializeResourceTest {
             
             bar = Bar
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun message_comment() {
-        val input = """
+        val input =
+            """
             # A multiline
             # message comment.
             foo = Foo
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun standalone_comment() {
-        val input = """
+        val input =
+            """
             foo = Foo
             
             # A standalone comment
             
             bar = Bar
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun multiline_with_placeable() {
-        val input = """
+        val input =
+            """
             foo =
                 Foo { bar }
                 Baz
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun attribute() {
-        val input = """
+        val input =
+            """
             foo =
                 .attr = Foo Attr
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun multiline_attribute() {
-        val input = """
+        val input =
+            """
             foo =
                 .attr =
                     Foo Attr
                     Continued
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun two_attribute() {
-        val input = """
+        val input =
+            """
             foo =
                 .attr-a = Foo Attr A
                 .attr-b = Foo Attr B
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun value_and_attributes() {
-        val input = """
+        val input =
+            """
             foo = Foo Value
                 .attr-a = Foo Attr A
                 .attr-b = Foo Attr B
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun multiline_value_and_attributes() {
-        val input = """
+        val input =
+            """
             foo =
                 Foo Value
                 Continued
                 .attr-a = Foo Attr A
                 .attr-b = Foo Attr B
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun select_expression() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}sel ->
                    *[a] A
                     [b] B
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun multiline_variant() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}sel ->
                    *[a]
@@ -277,21 +301,23 @@ class SerializeResourceTest {
                         BBB
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun multiline_variant_with_first_line_inline() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}sel ->
                    *[a] AAA
                         BBB
                 }
             
-        """.trimIndent()
-        val expected = """
+            """.trimIndent()
+        val expected =
+            """
             foo =
                 { ${'$'}sel ->
                    *[a]
@@ -299,58 +325,63 @@ class SerializeResourceTest {
                         BBB
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(expected, this.pretty(input))
     }
 
     @Test
     fun variant_key_number() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}sel ->
                    *[1] 1
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun select_expression_in_block_pattern() {
-        val input = """
+        val input =
+            """
             foo =
                 Foo { ${'$'}sel ->
                    *[a] A
                     [b] B
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun select_expression_in_inline_pattern() {
-        val input = """
+        val input =
+            """
             foo = Foo { ${'$'}sel ->
                    *[a] A
                     [b] B
                 }
             
-        """.trimIndent()
-        val expected = """
+            """.trimIndent()
+        val expected =
+            """
             foo =
                 Foo { ${'$'}sel ->
                    *[a] A
                     [b] B
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(expected, this.pretty(input))
     }
 
     @Test
     fun select_expression_in_multiline_pattern() {
-        val input = """
+        val input =
+            """
             foo =
                 Foo
                 Bar { ${'$'}sel ->
@@ -358,13 +389,14 @@ class SerializeResourceTest {
                     [b] B
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun nested_select_expression() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}a ->
                    *[a]
@@ -373,190 +405,209 @@ class SerializeResourceTest {
                         }
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun selector_variable_reference() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}bar ->
                    *[a] A
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun selector_number_literal() {
-        val input = """
+        val input =
+            """
             foo =
                 { 1 ->
                    *[a] A
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun selector_string_literal() {
-        val input = """
+        val input =
+            """
             foo =
                 { "bar" ->
                    *[a] A
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun selector_term_attribute_reference() {
-        val input = """
+        val input =
+            """
             foo =
                 { -bar.baz ->
                    *[a] A
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression() {
-        val input = """
+        val input =
+            """
             foo = { FOO() }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_string_literal() {
-        val input = """
+        val input =
+            """
             foo = { FOO("bar") }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_number_literal() {
-        val input = """
+        val input =
+            """
             foo = { FOO(1) }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_message_reference() {
-        val input = """
+        val input =
+            """
             foo = { FOO(bar) }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_variable_reference() {
-        val input = """
+        val input =
+            """
             foo = { FOO(${'$'}bar) }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_named_number_literal() {
-        val input = """
+        val input =
+            """
             foo = { FOO(bar: 1) }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_named_string_literal() {
-        val input = """
+        val input =
+            """
             foo = { FOO(bar: "bar") }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_two_positional_arguments() {
-        val input = """
+        val input =
+            """
             foo = { FOO(bar, baz) }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_two_named_arguments() {
-        val input = """
+        val input =
+            """
             foo = { FOO(bar: "bar", baz: "baz") }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun call_expression_with_positional_and_named_arguments() {
-        val input = """
+        val input =
+            """
             foo = { FOO(bar, 1, baz: "baz") }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun term_reference_call() {
-        val input = """
+        val input =
+            """
             foo = { -term() }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun nested_placeable() {
-        val input = """
+        val input =
+            """
             foo = {{ FOO() }}
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun backslash_in_text_element() {
-        val input = """
+        val input =
+            """
             foo = \{ placeable }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun escaped_special_char_in_string_literal() {
-        val input = """
+        val input =
+            """
             foo = { "Escaped \" quote" }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun unicode_escape_sequence() {
-        val input = """
+        val input =
+            """
             foo = { "\u0065" }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 }

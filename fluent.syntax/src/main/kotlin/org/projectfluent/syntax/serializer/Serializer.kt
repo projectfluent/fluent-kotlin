@@ -11,8 +11,8 @@ fun includesLine(elem: PatternElement): Boolean {
 }
 
 fun isSelectExpr(elem: PatternElement): Boolean {
-    return elem is Placeable
-            && elem.expression is SelectExpression
+    return elem is Placeable &&
+        elem.expression is SelectExpression
 }
 
 class FluentSerializer(var withJunk: Boolean = false) {
@@ -125,8 +125,8 @@ class FluentSerializer(var withJunk: Boolean = false) {
 
     private fun serializePattern(pattern: Pattern): CharSequence {
         val startOnLine =
-                pattern.elements.any(::isSelectExpr) ||
-                        pattern.elements.any(::includesLine)
+            pattern.elements.any(::isSelectExpr) ||
+                pattern.elements.any(::includesLine)
         val elements = pattern.elements.map(::serializeElement)
         val content = indent(elements.joinToString(""))
 

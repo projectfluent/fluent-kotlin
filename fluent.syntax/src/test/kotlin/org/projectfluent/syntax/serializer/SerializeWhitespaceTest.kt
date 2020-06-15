@@ -21,19 +21,21 @@ class SerializeWhitespaceTest {
 
     @Test
     fun empty_lines() {
-        val input = """
+        val input =
+            """
             key1 = Value 1
             
             
             key2 = Value 2
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun standalone_comment() {
-        val input = """
+        val input =
+            """
             # Comment A
             
             foo = Foo
@@ -42,13 +44,14 @@ class SerializeWhitespaceTest {
             
             bar = Bar 2
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun group_comment() {
-        val input = """
+        val input =
+            """
             ## Group A
             
             foo = Foo
@@ -57,13 +60,14 @@ class SerializeWhitespaceTest {
             
             bar = Bar 2
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 
     @Test
     fun resource_comment() {
-        val input = """
+        val input =
+            """
             ### Resource Comment A
             
             foo = Foo
@@ -72,7 +76,7 @@ class SerializeWhitespaceTest {
             
             bar = Bar 2
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 }

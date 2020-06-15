@@ -24,19 +24,21 @@ class SerializeExpressionTest {
 
     @Test
     fun string_literal() {
-        val input = """
+        val input =
+            """
             foo = { "str" }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("\"str\"", this.pretty(input))
     }
 
     @Test
     fun number_literal() {
-        val input = """
+        val input =
+            """
             foo = { 3 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("3", this.pretty(input))
     }
 
@@ -48,49 +50,54 @@ class SerializeExpressionTest {
 
     @Test
     fun message_reference() {
-        val input = """
+        val input =
+            """
             foo = { msg }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("msg", this.pretty(input))
     }
 
     @Test
     fun message_attribute_reference() {
-        val input = """
+        val input =
+            """
             foo = { msg.attr }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("msg.attr", this.pretty(input))
     }
 
     @Test
     fun variable_reference() {
-        val input = """
+        val input =
+            """
             foo = { ${'$'}var }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("\$var", this.pretty(input))
     }
 
     @Test
     fun call_expression() {
-        val input = """
+        val input =
+            """
             foo = { BUILTIN(3.14, kwarg: "value") }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("BUILTIN(3.14, kwarg: \"value\")", this.pretty(input))
     }
 
     @Test
     fun select_expression() {
-        val input = """
+        val input =
+            """
             foo =
                 { ${'$'}num ->
                    *[one] One
                 }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("\$num ->\n   *[one] One\n", this.pretty(input))
     }
 }

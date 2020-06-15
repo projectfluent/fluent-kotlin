@@ -24,20 +24,22 @@ class SerializeVariantKeyTest {
 
     @Test
     fun identifier_key() {
-        val input = """
+        val input =
+            """
             foo = { 0 ->
                 [one] One
                *[other] Other
             }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("one", this.pretty_key(input, 0))
         assertEquals("other", this.pretty_key(input, 1))
     }
 
     @Test
     fun number_key() {
-        val input = """
+        val input =
+            """
             foo = { 0 ->
                 [-123456789] Minus a lot
                 [0] Zero
@@ -45,7 +47,7 @@ class SerializeVariantKeyTest {
                 [007] James
             }
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals("-123456789", this.pretty_key(input, 0))
         assertEquals("0", this.pretty_key(input, 1))
         assertEquals("3.14", this.pretty_key(input, 2))

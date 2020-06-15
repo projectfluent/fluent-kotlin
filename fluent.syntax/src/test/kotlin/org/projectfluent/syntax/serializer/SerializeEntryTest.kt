@@ -22,11 +22,12 @@ class SerializeEntryTest {
 
     @Test
     fun message() {
-        val input = """
+        val input =
+            """
             # Attached comment
             key = Value
             
-        """.trimIndent()
+            """.trimIndent()
         assertEquals(input, this.pretty(input))
     }
 }
