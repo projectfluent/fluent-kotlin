@@ -391,7 +391,7 @@ class FluentParser(var withSpans: Boolean = false) {
         val trimmed: MutableList<PatternElement> = mutableListOf()
 
         for (element in elements) {
-            if (false /*element is Placeable*/) {
+            if (element is Placeable) {
                 trimmed.add(element)
                 continue
             }
