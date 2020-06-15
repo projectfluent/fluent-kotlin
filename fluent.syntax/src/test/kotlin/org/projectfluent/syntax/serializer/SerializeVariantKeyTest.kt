@@ -2,9 +2,7 @@ package org.projectfluent.syntax.serializer
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectfluent.syntax.ast.Message
-import org.projectfluent.syntax.ast.Placeable
-import org.projectfluent.syntax.ast.SelectExpression
+import org.projectfluent.syntax.ast.*
 import org.projectfluent.syntax.parser.FluentParser
 
 class SerializeVariantKeyTest {
@@ -52,5 +50,11 @@ class SerializeVariantKeyTest {
         assertEquals("0", this.pretty_key(input, 1))
         assertEquals("3.14", this.pretty_key(input, 2))
         assertEquals("007", this.pretty_key(input, 3))
+    }
+
+    @Test
+    fun number_literal_type() {
+        val key = NumberLiteral("1")
+        assertEquals("1", this.serializer.serialize(key as VariantKey))
     }
 }

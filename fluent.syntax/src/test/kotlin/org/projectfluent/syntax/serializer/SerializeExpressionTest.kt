@@ -2,9 +2,7 @@ package org.projectfluent.syntax.serializer
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectfluent.syntax.ast.Expression
-import org.projectfluent.syntax.ast.Message
-import org.projectfluent.syntax.ast.Placeable
+import org.projectfluent.syntax.ast.*
 import org.projectfluent.syntax.parser.FluentParser
 
 class SerializeExpressionTest {
@@ -40,6 +38,12 @@ class SerializeExpressionTest {
             
         """.trimIndent()
         assertEquals("3", this.pretty(input))
+    }
+
+    @Test
+    fun number_literal_type() {
+        val key = NumberLiteral("1")
+        assertEquals("1", this.serializer.serialize(key as Expression))
     }
 
     @Test
