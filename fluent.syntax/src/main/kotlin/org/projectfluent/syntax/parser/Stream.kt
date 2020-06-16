@@ -5,20 +5,15 @@ open class ParserStream(var string: String) {
     var peekOffset: Int = 0
 
     private fun charAt(offset: Int): Char? {
-        if (offset >= this.string.length) return null
         // When the cursor is at CRLF, return LF but don't move the cursor.
         // The cursor still points to the EOL position, which in this case is the
         // beginning of the compound CRLF sequence. This ensures slices of
         // [inclusive, exclusive) continue to work properly.
-        if (this.string[offset] == '\r') {
-            return if (offset + 1 < this.string.length && this.string[offset + 1] == '\n') {
-                '\n'
-            } else {
-                null
-            }
+        return if (this.string.getOrNull(offset) == '\r' && this.string.getOrNull(offset + 1) == '\n') {
+            '\n'
+        } else {
+            this.string.getOrNull(offset)
         }
-
-        return this.string[offset]
     }
 
     fun currentChar(): Char? {
@@ -33,23 +28,22 @@ open class ParserStream(var string: String) {
         this.peekOffset = 0
         if (this.index >= this.string.length) return null
         // Skip over the CRLF as if it was a single character.
-        if (this.string[this.index] == '\r') {
+        if (this.string[this.index] == '\r' && this.string.getOrNull(this.index + 1) == '\n') {
             this.index++
         }
         this.index++
-        if (this.index >= this.string.length) return null
-        return this.string[this.index]
+        return this.string.getOrNull(this.index)
     }
 
     fun peek(): Char? {
-        this.peekOffset++
-        if (this.index + this.peekOffset >= this.string.length) return null
         // Skip over the CRLF as if it was a single character.
-        if (this.string[this.index + this.peekOffset] == '\r') {
+        if (this.string.getOrNull(this.index + this.peekOffset) == '\r' &&
+            this.string.getOrNull(this.index + this.peekOffset + 1) == '\n'
+        ) {
             this.peekOffset++
         }
-        if (this.index + this.peekOffset >= this.string.length) return null
-        return this.string[this.index + peekOffset]
+        this.peekOffset++
+        return this.string.getOrNull(this.index + peekOffset)
     }
 
     fun resetPeek(offset: Int = 0) {
