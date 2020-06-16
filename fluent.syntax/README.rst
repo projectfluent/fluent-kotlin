@@ -9,14 +9,18 @@ if you work on tooling for Fluent in Kotlin or Java.
 
 .. code-block:: kotlin
 
+   import org.projectfluent.syntax.ast.*
    import org.projectfluent.syntax.parser.FluentParser
    import org.projectfluent.syntax.serializer.FluentSerializer
    val parser = FluentParser()
    val resource = parser.parse("a-key = String to localize")
-   println(resource.body.id.name)
+   println((resource.body[0] as Message).id.name)
+   "a-key"
    val serializer = FluentSerializer()
    println(serializer.serialize(resource))
-   println(serializer.serialize(resource.body[0))
+   "a-key = String to localize"
+   println(serializer.serialize(resource.body[0]))
+   "a-key = String to localize"
 
 
 .. _fluent: https://projectfluent.org/
