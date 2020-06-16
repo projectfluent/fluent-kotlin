@@ -40,3 +40,15 @@ internal class VisitorTest {
         assertEquals(1, visitor.variantCount)
     }
 }
+
+internal class ChildrenOfTest {
+    @Test
+    fun test_childrenOf() {
+        val variant = Variant(Identifier("other"), Pattern(), true)
+        val variant_props = childrenOf(variant)
+        assertEquals(
+            listOf("default", "key", "span", "value"),
+            variant_props.map { (name, _) -> name }.sorted().toList()
+        )
+    }
+}
