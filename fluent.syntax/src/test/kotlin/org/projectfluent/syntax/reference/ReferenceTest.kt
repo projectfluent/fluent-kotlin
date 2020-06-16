@@ -9,16 +9,16 @@ import org.projectfluent.syntax.parser.FluentParser
 import java.io.File
 import java.nio.file.Paths
 
-val DISABLED = arrayOf(
-    "leading_dots.ftl",
-    ""
-)
-
-internal class ReferenceTest {
+internal open class ReferenceTest {
+    open val fixture = "reference_fixtures"
+    open val DISABLED = arrayOf(
+        "leading_dots.ftl",
+        ""
+    )
     @TestFactory
-    fun references(): Iterable<DynamicTest> {
+    open fun references(): Iterable<DynamicTest> {
         val reference_tests: MutableList<DynamicTest> = mutableListOf()
-        val referencedir = Paths.get("src", "test", "resources", "reference_fixtures")
+        val referencedir = Paths.get("src", "test", "resources", fixture)
         for (entry in referencedir.toFile().walk()) {
             if (entry.extension == "ftl" && ! DISABLED.contains(entry.name)) {
                 val reftest = DynamicTest.dynamicTest(entry.name) {
@@ -38,4 +38,11 @@ internal class ReferenceTest {
         val ref = Parser.default().parse(json_file.path) as JsonObject
         assertAstEquals(ref, resource)
     }
+}
+
+internal class StructureTest : ReferenceTest() {
+    override val fixture = "structure_fixtures"
+    override val DISABLED = arrayOf(
+        ""
+    )
 }
