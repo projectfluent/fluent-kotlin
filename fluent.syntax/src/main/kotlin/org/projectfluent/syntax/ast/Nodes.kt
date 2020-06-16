@@ -162,5 +162,5 @@ data class Whitespace(val content: String) : TopLevel()
 data class Span(var start: Int, var end: Int) : BaseNode()
 
 data class Annotation(var code: String, var message: String) : SyntaxNode() {
-    val args: MutableList<Any> = mutableListOf()
+    val arguments: MutableList<Any> = mutableListOf()
 }
