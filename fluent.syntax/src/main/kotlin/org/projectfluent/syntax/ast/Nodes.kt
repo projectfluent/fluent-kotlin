@@ -14,16 +14,16 @@ abstract class BaseNode {
     fun nodeEquals(other: BaseNode?, ignoredFields: Array<String> = arrayOf("span")): Boolean {
         if (other == null) return false
         if (this::class != other::class) return false
-        val other_members = hashMapOf<String, Any?>()
+        val otherMembers = hashMapOf<String, Any?>()
         other::class.memberProperties.forEach {
             if (it.visibility == KVisibility.PUBLIC && ! ignoredFields.contains(it.name)) {
-                other_members[it.name] = it.getter.call(other)
+                otherMembers[it.name] = it.getter.call(other)
             }
         }
         this::class.memberProperties.forEach {
-            if (it.name in other_members) {
+            if (it.name in otherMembers) {
                 val value = it.getter.call(this)
-                val otherValue = other_members[it.name]
+                val otherValue = otherMembers[it.name]
                 if (value is Collection<*> && otherValue is Collection<*>) {
                     if (value.size != otherValue.size) return false
                     for ((left, right) in value.zip(otherValue)) {
@@ -51,7 +51,7 @@ private fun scalarsEqual(left: Any?, right: Any?, ignoredFields: Array<String>):
 /**
  * Base class for AST nodes which can have Spans.
  */
-abstract class SyntaxNode() : BaseNode() {
+abstract class SyntaxNode : BaseNode() {
     var span: Span? = null
     fun addSpan(start: Int, end: Int) {
         this.span = Span(start, end)
@@ -61,11 +61,12 @@ abstract class SyntaxNode() : BaseNode() {
 /**
  * A Fluent file representation
  */
-class Resource : SyntaxNode {
-    constructor(vararg children: TopLevel) : super() {
+class Resource(vararg children: TopLevel) : SyntaxNode() {
+    val body: MutableList<TopLevel> = mutableListOf()
+
+    init {
         this.body += children
     }
-    val body: MutableList<TopLevel> = mutableListOf()
 }
 
 abstract class TopLevel : SyntaxNode()
@@ -85,9 +86,10 @@ data class Term(var id: Identifier, var value: Pattern) : Entry() {
     var comment: Comment? = null
 }
 
-class Pattern : SyntaxNode {
+class Pattern(vararg elements: PatternElement) : SyntaxNode() {
     val elements: MutableList<PatternElement> = mutableListOf()
-    constructor(vararg elements: PatternElement) : super() {
+
+    init {
         this.elements += elements
     }
 }
@@ -104,13 +106,9 @@ abstract class Expression : CallArgument, InsidePlaceable, SyntaxNode()
 
 abstract class Literal(val value: String) : Expression()
 
-class StringLiteral : Literal {
-    constructor(value: String) : super(value)
-}
+class StringLiteral(value: String) : Literal(value)
 
-class NumberLiteral : VariantKey, Literal {
-    constructor(value: String) : super(value)
-}
+class NumberLiteral(value: String) : VariantKey, Literal(value)
 
 data class MessageReference(var id: Identifier, var attribute: Identifier? = null) : Expression()
 
@@ -141,17 +139,11 @@ data class Identifier(var name: String) : VariantKey, SyntaxNode()
 
 abstract class BaseComment(var content: String) : Entry()
 
-class Comment : BaseComment {
-    constructor(content: String) : super(content)
-}
+class Comment(content: String) : BaseComment(content)
 
-class GroupComment : BaseComment {
-    constructor(content: String) : super(content)
-}
+class GroupComment(content: String) : BaseComment(content)
 
-class ResourceComment : BaseComment {
-    constructor(content: String) : super(content)
-}
+class ResourceComment(content: String) : BaseComment(content)
 
 data class Junk(val content: String) : TopLevel() {
     val annotations: MutableList<Annotation> = mutableListOf()

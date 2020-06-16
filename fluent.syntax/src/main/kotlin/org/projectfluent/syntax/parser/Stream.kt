@@ -1,24 +1,20 @@
 package org.projectfluent.syntax.parser
 
-open class ParserStream {
-    var string: String = ""
+open class ParserStream(var string: String) {
     var index: Int = 0
     var peekOffset: Int = 0
-    constructor(string: String) {
-        this.string = string
-    }
 
-    internal fun charAt(offset: Int): Char? {
+    private fun charAt(offset: Int): Char? {
         if (offset >= this.string.length) return null
         // When the cursor is at CRLF, return LF but don't move the cursor.
         // The cursor still points to the EOL position, which in this case is the
         // beginning of the compound CRLF sequence. This ensures slices of
         // [inclusive, exclusive) continue to work properly.
         if (this.string[offset] == '\r') {
-            if (offset + 1 < this.string.length && this.string[offset + 1] == '\n') {
-                return '\n'
+            return if (offset + 1 < this.string.length && this.string[offset + 1] == '\n') {
+                '\n'
             } else {
-                return null
+                null
             }
         }
 
@@ -70,8 +66,7 @@ const val EOL = '\n'
 val EOF: Char? = null
 const val SPECIAL_LINE_START_CHARS = "}.[*"
 
-class FluentStream : ParserStream {
-    constructor(string: String) : super(string)
+class FluentStream(string: String) : ParserStream(string) {
 
     fun peekBlankInline(): String {
         val start = this.index + this.peekOffset
@@ -159,11 +154,11 @@ class FluentStream : ParserStream {
         return null
     }
 
-    fun isCharIdStart(ch: Char?): Boolean {
+    private fun isCharIdStart(ch: Char?): Boolean {
         ch?.let {
             val cc = ch.toInt()
-            return (cc >= 97 && cc <= 122) || // a-z
-                (cc >= 65 && cc <= 90) // A-Z
+            return (cc in 97..122) || // a-z
+                (cc in 65..90) // A-Z
         }
         return false
     }
@@ -177,7 +172,7 @@ class FluentStream : ParserStream {
 
         ch?.let {
             val cc = ch.toInt()
-            val isDigit = cc >= 48 && cc <= 57 // 0-9
+            val isDigit = cc in 48..57 // 0-9
             this.resetPeek()
             return isDigit
         }
@@ -185,7 +180,7 @@ class FluentStream : ParserStream {
         return false
     }
 
-    fun isCharPatternContinuation(ch: Char?): Boolean {
+    private fun isCharPatternContinuation(ch: Char?): Boolean {
         ch?.let {
             return SPECIAL_LINE_START_CHARS.indexOf(ch) < 0
         }
@@ -308,9 +303,9 @@ class FluentStream : ParserStream {
         val closure = fun (ch: Char): Boolean {
             val cc = ch.toInt()
             return (
-                (cc >= 97 && cc <= 122) || // a-z
-                    (cc >= 65 && cc <= 90) || // A-Z
-                    (cc >= 48 && cc <= 57) || // 0-9
+                (cc in 97..122) || // a-z
+                    (cc in 65..90) || // A-Z
+                    (cc in 48..57) || // 0-9
                     cc == 95 || cc == 45
                 ) // _-
         }
@@ -321,7 +316,7 @@ class FluentStream : ParserStream {
     fun takeDigit(): Char? {
         val closure = fun (ch: Char): Boolean {
             val cc = ch.toInt()
-            return (cc >= 48 && cc <= 57) // 0-9
+            return (cc in 48..57) // 0-9
         }
 
         return this.takeChar(closure)
@@ -330,9 +325,9 @@ class FluentStream : ParserStream {
     fun takeHexDigit(): Char? {
         val closure = fun (ch: Char): Boolean {
             val cc = ch.toInt()
-            return (cc >= 48 && cc <= 57) || // 0-9
-                (cc >= 65 && cc <= 70) || // A-F
-                (cc >= 97 && cc <= 102) // a-f
+            return (cc in 48..57) || // 0-9
+                (cc in 65..70) || // A-F
+                (cc in 97..102) // a-f
         }
 
         return this.takeChar(closure)
