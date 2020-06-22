@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'python-fluent'
+project = 'fluent-kotlin'
 
 
 # -- General configuration ---------------------------------------------------
