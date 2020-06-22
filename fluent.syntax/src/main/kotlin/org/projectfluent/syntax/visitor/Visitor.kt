@@ -1,5 +1,6 @@
-package org.projectfluent.syntax.ast
+package org.projectfluent.syntax.visitor
 
+import org.projectfluent.syntax.ast.BaseNode
 import java.lang.reflect.Method
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberProperties
@@ -18,6 +19,12 @@ fun childrenOf(node: BaseNode) = sequence {
     }
 }
 
+/**
+ * Generic Visitor base class.
+ *
+ * Implement public visitNodeType methods to add handling to AST node types,
+ * e.g. `visitResource(node: Resource)` to handle the `Resource` node type.
+ */
 abstract class Visitor {
     private val handlers: MutableMap<String, Method> = mutableMapOf()
     init {
@@ -27,6 +34,12 @@ abstract class Visitor {
             handlers[it.name.substring("visit".length)] = it
         }
     }
+
+    /**
+     * Primary entry point for all visitors.
+     *
+     * This is the method you want to call on concrete visitor implementations.
+     */
     fun visit(node: BaseNode) {
         val cName = node::class.java.simpleName
         val handler = this.handlers[cName]
@@ -36,6 +49,11 @@ abstract class Visitor {
             this.genericVisit(node)
         }
     }
+
+    /**
+     * From concrete `visitNodeType` implementations, call this
+     * method to continue iteration into the AST if desired.
+     */
     fun genericVisit(node: BaseNode) {
         childrenOf(node).map { (_, value) -> value }.forEach { value ->
             when (value) {

@@ -1,8 +1,14 @@
-package org.projectfluent.syntax.ast
+package org.projectfluent.testing
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectfluent.syntax.ast.Identifier
+import org.projectfluent.syntax.ast.Pattern
+import org.projectfluent.syntax.ast.TextElement
+import org.projectfluent.syntax.ast.Variant
 import org.projectfluent.syntax.parser.FluentParser
+import org.projectfluent.syntax.visitor.Visitor
+import org.projectfluent.syntax.visitor.childrenOf
 
 class TestableVisitor : Visitor() {
     var patternCount = 0
