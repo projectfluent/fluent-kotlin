@@ -34,9 +34,9 @@ jobs:
           pip install Sphinx fluent.pygments
       - name: sphinx-build
         run: |
-          ./scripts/build-docs --to-publish python-fluent
+          ./scripts/build-docs --to-publish fluent-kotlin
       - name: artifact
         uses: actions/upload-artifact@v2
         with:
           name: html
-          path: _build/python-fluent
+          path: _build/fluent-kotlin
