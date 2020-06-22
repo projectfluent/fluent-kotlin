@@ -1,3 +1,6 @@
+group = "org.projectfluent"
+version = "0.1"
+
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
     kotlin("jvm") version "1.3.72"

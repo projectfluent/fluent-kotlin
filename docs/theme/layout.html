@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" data-url_root="{{ pathto('', 1) }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    {%- block scripts %}
+    <script src="{{pathto(theme_baseuri + '/_static/theme.js', 1)|e}}" type="module"></script>
+    {% endblock %}
+    {%- block extrahead %} {% endblock %}
+</head>
+<body>
+    <sphinx-document>
+        <sphinx-header></sphinx-header>
+        <sphinx-sidebar></sphinx-sidebar>
+        <sphinx-content>{% block body %} {% endblock %}</sphinx-content>
+        <sphinx-footer></sphinx-footer>
+    </sphinx-document>
+    <template id="toctree">{{ toctree() }}</template>
+</body>
+</html>

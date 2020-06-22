@@ -1,0 +1,2 @@
+# Ignore sphinx build output directory
+_build
