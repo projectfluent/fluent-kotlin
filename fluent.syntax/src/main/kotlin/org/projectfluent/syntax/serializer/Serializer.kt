@@ -2,20 +2,28 @@ package org.projectfluent.syntax.serializer
 
 import org.projectfluent.syntax.ast.*
 
-fun indent(content: CharSequence): String {
+private fun indent(content: CharSequence): String {
     return content.split("\n").joinToString("\n    ")
 }
 
-fun includesLine(elem: PatternElement): Boolean {
+private fun includesLine(elem: PatternElement): Boolean {
     return elem is TextElement && elem.value.contains("\n")
 }
 
-fun isSelectExpr(elem: PatternElement): Boolean {
+private fun isSelectExpr(elem: PatternElement): Boolean {
     return elem is Placeable &&
         elem.expression is SelectExpression
 }
 
+/**
+ * Serialize Fluent nodes to `CharSequence`.
+ *
+ * @property withJunk serialize Junk entries or not.
+ */
 class FluentSerializer(var withJunk: Boolean = false) {
+    /**
+     * Serialize a Resource.
+     */
     fun serialize(resource: Resource): CharSequence {
         val builder = StringBuilder()
 
@@ -38,6 +46,9 @@ class FluentSerializer(var withJunk: Boolean = false) {
         return builder
     }
 
+    /**
+     * Serialize Message, Term, Whitespace, and Junk.
+     */
     fun serialize(entry: TopLevel): CharSequence {
         when (entry) {
             is Entry -> return serializeEntry(entry)
@@ -47,10 +58,20 @@ class FluentSerializer(var withJunk: Boolean = false) {
         throw SerializeError("Unknown top-level type: $entry")
     }
 
+    /**
+     * Serialize an Expression.
+     *
+     * This is useful to get a string representation of a simple Placeable.
+     */
     fun serialize(expr: Expression): CharSequence {
         return serializeExpression(expr)
     }
 
+    /**
+     * Serialize a VariantKey.
+     *
+     * Useful when displaying the options of a SelectExpression.
+     */
     fun serialize(key: VariantKey): CharSequence {
         return serializeVariantKey(key)
     }
