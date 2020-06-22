@@ -4,6 +4,7 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import org.junit.jupiter.api.Assertions.*
 import org.projectfluent.syntax.ast.*
+import org.projectfluent.syntax.visitor.childrenOf
 
 fun assertAstEquals(jsonObject: JsonObject, node: BaseNode, stack: MutableList<String> = mutableListOf()) {
     val jType = jsonObject.remove("type")
