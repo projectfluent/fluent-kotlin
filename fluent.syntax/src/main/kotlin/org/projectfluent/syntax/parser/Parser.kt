@@ -30,8 +30,8 @@ class FluentParser(var withSpans: Boolean = false) {
             // Consequently, we only attach Comments once we know that the Message
             // or the Term parsed successfully.
             if (entry is Comment &&
-                blankLines.isEmpty() &&
-                ps.currentChar() != EOF
+                    blankLines.isEmpty() &&
+                    ps.currentChar() != EOF
             ) {
                 // Stash the comment and decide what to do with it in the next pass.
                 lastComment = entry
@@ -76,12 +76,8 @@ class FluentParser(var withSpans: Boolean = false) {
 
             // Create a Junk instance
             val slice = ps.string.substring(entryStartPos, nextEntryStart)
-            val junk = Junk(slice)
-            val annot = Annotation(err.code, err.message ?: "")
-            annot.arguments.addAll(err.args)
-            annot.addSpan(errorIndex, errorIndex)
-            junk.addAnnotation(annot)
-            return junk
+            val annot = Annotation(err.code, err.message ?: "", err.args, Span(errorIndex))
+            return Junk(slice, listOf(annot))
         }
     }
 
@@ -157,9 +153,7 @@ class FluentParser(var withSpans: Boolean = false) {
             throw ParseError("E0005", id.name)
         }
 
-        val msg = Message(id, value)
-        msg.attributes.addAll(attrs)
-        return msg
+        return Message(id, value, attrs)
     }
 
     private fun getTerm(ps: FluentStream): Term {
@@ -175,9 +169,7 @@ class FluentParser(var withSpans: Boolean = false) {
         }
 
         val attrs = this.getAttributes(ps)
-        val term = Term(id, value)
-        term.attributes.addAll(attrs)
-        return term
+        return Term(id, value, attrs)
     }
 
     private fun getAttribute(ps: FluentStream): Attribute {
@@ -193,7 +185,7 @@ class FluentParser(var withSpans: Boolean = false) {
         return Attribute(key, value)
     }
 
-    private fun getAttributes(ps: FluentStream): Collection<Attribute> {
+    private fun getAttributes(ps: FluentStream): List<Attribute> {
         val attrs: MutableList<Attribute> = mutableListOf()
         ps.peekBlank()
         while (ps.isAttributeStart()) {
@@ -387,7 +379,7 @@ class FluentParser(var withSpans: Boolean = false) {
     // be trimmed and merged into adjacent TextElements, or turned into a new
     // TextElement, if it's surrounded by two Placeables.
     private fun getIndent(ps: FluentStream, value: String, start: Int): Indent {
-        return Indent(value, start, ps.index)
+        return Indent(value, Span(start, ps.index))
     }
 
     // Dedent a list of elements by removing the maximum common indent from the
@@ -404,7 +396,7 @@ class FluentParser(var withSpans: Boolean = false) {
             if (element is Indent) {
                 // Strip common indent.
                 element.value = element.value.slice(
-                    0 until (element.value.length - commonIndent)
+                        0 until (element.value.length - commonIndent)
                 )
                 if (element.value.isEmpty()) {
                     continue
@@ -415,18 +407,25 @@ class FluentParser(var withSpans: Boolean = false) {
                 val prev = trimmed.last()
                 if (prev is TextElement) {
                     // Join adjacent TextElements by replacing them with their sum.
-                    val sum = TextElement(
-                        prev.value + when (element) {
-                            is TextElement -> element.value
-                            is Indent -> element.value
-                            else -> throw IllegalStateException("Unexpected PatternElement type")
-                        }
-                    )
-                    if (this.withSpans) {
+                    val span = if (this.withSpans) {
                         val start = prev.span?.start
                         val end = element.span?.end
-                        if (start != null && end != null) sum.addSpan(start, end)
+                        if (start != null && end != null) {
+                            Span(start, end)
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
                     }
+                    val sum = TextElement(
+                            prev.value + when (element) {
+                                is TextElement -> element.value
+                                is Indent -> element.value
+                                else -> throw IllegalStateException("Unexpected PatternElement type")
+                            },
+                            span
+                    )
                     trimmed[trimmed.size - 1] = sum
                     continue
                 }
@@ -435,12 +434,18 @@ class FluentParser(var withSpans: Boolean = false) {
             if (element is Indent) {
                 // If the indent hasn't been merged into a preceding TextElement,
                 // convert it into a new TextElement.
-                val textElement = TextElement(element.value)
-                if (this.withSpans) {
+                val span = if (this.withSpans) {
                     val start = element.span?.start
                     val end = element.span?.end
-                    if (start != null && end != null) textElement.addSpan(start, end)
+                    if (start != null && end != null) {
+                        Span(start, end)
+                    } else {
+                        null
+                    }
+                } else {
+                    null
                 }
+                val textElement = TextElement(element.value, span)
                 trimmed.add(textElement)
                 continue
             }
@@ -490,18 +495,18 @@ class FluentParser(var withSpans: Boolean = false) {
     }
 
     private fun getUnicodeEscapeSequence(
-        ps: FluentStream,
-        u: Char,
-        digits: Int
+            ps: FluentStream,
+            u: Char,
+            digits: Int
     ): String {
         ps.expectChar(u)
 
         var sequence = ""
         for (i in 0 until digits) {
             val ch = ps.takeHexDigit()
-                ?: throw ParseError(
-                    "E0026", "\\${u}${sequence}${ps.currentChar()}"
-                )
+                    ?: throw ParseError(
+                            "E0026", "\\${u}${sequence}${ps.currentChar()}"
+                    )
 
             sequence += ch
         }
@@ -689,10 +694,7 @@ class FluentParser(var withSpans: Boolean = false) {
         }
 
         ps.expectChar(')')
-        val args = CallArguments()
-        args.positional.addAll(positional)
-        args.named.addAll(named)
-        return args
+        return CallArguments(positional, named)
     }
 
     private fun getString(ps: FluentStream): StringLiteral {
@@ -732,8 +734,4 @@ class FluentParser(var withSpans: Boolean = false) {
     }
 }
 
-private data class Indent(var value: String) : PatternElement() {
-    constructor(value: String, start: Int, end: Int) : this(value) {
-        this.addSpan(start, end)
-    }
-}
+private class Indent(var value: String, span: Span? = null) : PatternElement(span)

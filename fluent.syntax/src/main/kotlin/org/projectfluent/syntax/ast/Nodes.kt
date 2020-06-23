@@ -51,22 +51,13 @@ private fun scalarsEqual(left: Any?, right: Any?, ignoredFields: Array<String>):
 /**
  * Base class for AST nodes which can have Spans.
  */
-abstract class SyntaxNode : BaseNode() {
-    var span: Span? = null
-    fun addSpan(start: Int, end: Int) {
-        this.span = Span(start, end)
-    }
-}
+abstract class SyntaxNode(val span: Span? = null) : BaseNode()
 
 /**
  * A Fluent file representation
  */
 class Resource(vararg children: TopLevel) : SyntaxNode() {
-    val body: MutableList<TopLevel> = mutableListOf()
-
-    init {
-        this.body += children
-    }
+    val body: List<TopLevel> = children.asList()
 }
 
 abstract class TopLevel : SyntaxNode()
@@ -76,31 +67,31 @@ abstract class TopLevel : SyntaxNode()
  */
 abstract class Entry : TopLevel()
 
-data class Message(var id: Identifier, var value: Pattern?) : Entry() {
-    var attributes: MutableList<Attribute> = mutableListOf()
-    var comment: Comment? = null
-}
+data class Message(
+        val id: Identifier,
+        val value: Pattern?,
+        val attributes: List<Attribute>,
+        var comment: Comment? = null
+) : Entry()
 
-data class Term(var id: Identifier, var value: Pattern) : Entry() {
-    var attributes: MutableList<Attribute> = mutableListOf()
-    var comment: Comment? = null
-}
+data class Term(
+        val id: Identifier,
+        val value: Pattern,
+        val attributes: List<Attribute>,
+        var comment: Comment? = null
+) : Entry()
 
 class Pattern(vararg elements: PatternElement) : SyntaxNode() {
-    val elements: MutableList<PatternElement> = mutableListOf()
-
-    init {
-        this.elements += elements
-    }
+    val elements: List<PatternElement> = elements.asList()
 }
 
-abstract class PatternElement : SyntaxNode()
+abstract class PatternElement(span: Span? = null) : SyntaxNode(span)
 
-data class TextElement(var value: String) : PatternElement()
+class TextElement(var value: String, span: Span? = null) : PatternElement(span)
 
 interface InsidePlaceable
 
-data class Placeable(var expression: InsidePlaceable) : InsidePlaceable, PatternElement()
+data class Placeable(val expression: InsidePlaceable) : InsidePlaceable, PatternElement()
 
 abstract class Expression : CallArgument, InsidePlaceable, SyntaxNode()
 
@@ -110,34 +101,34 @@ class StringLiteral(value: String) : Literal(value)
 
 class NumberLiteral(value: String) : VariantKey, Literal(value)
 
-data class MessageReference(var id: Identifier, var attribute: Identifier? = null) : Expression()
+data class MessageReference(val id: Identifier, val attribute: Identifier?) : Expression()
 
-data class TermReference(var id: Identifier, var attribute: Identifier? = null, var arguments: CallArguments? = null) : Expression()
+data class TermReference(val id: Identifier, val attribute: Identifier?, val arguments: CallArguments?) : Expression()
 
-data class VariableReference(var id: Identifier) : Expression()
+data class VariableReference(val id: Identifier) : Expression()
 
-data class FunctionReference(var id: Identifier, var arguments: CallArguments) : Expression()
+data class FunctionReference(val id: Identifier, val arguments: CallArguments) : Expression()
 
-data class SelectExpression(var selector: Expression, var variants: MutableList<Variant>) : Expression()
+data class SelectExpression(val selector: Expression, val variants: List<Variant>) : Expression()
 
 interface CallArgument
 
-class CallArguments : SyntaxNode() {
-    val positional: MutableList<Expression> = mutableListOf()
-    val named: MutableList<NamedArgument> = mutableListOf()
-}
+class CallArguments(
+        val positional: List<Expression>,
+        val named: List<NamedArgument>
+) : SyntaxNode()
 
-data class Attribute(var id: Identifier, var value: Pattern) : SyntaxNode()
+data class Attribute(val id: Identifier, val value: Pattern) : SyntaxNode()
 
 interface VariantKey
 
-data class Variant(var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
+data class Variant(val key: VariantKey, val value: Pattern, val default: Boolean) : SyntaxNode()
 
-data class NamedArgument(var name: Identifier, var value: Literal) : CallArgument, SyntaxNode()
+data class NamedArgument(val name: Identifier, val value: Literal) : CallArgument, SyntaxNode()
 
-data class Identifier(var name: String) : VariantKey, SyntaxNode()
+data class Identifier(val name: String) : VariantKey, SyntaxNode()
 
-abstract class BaseComment(var content: String) : Entry()
+abstract class BaseComment(val content: String) : Entry()
 
 class Comment(content: String) : BaseComment(content)
 
@@ -145,12 +136,7 @@ class GroupComment(content: String) : BaseComment(content)
 
 class ResourceComment(content: String) : BaseComment(content)
 
-data class Junk(val content: String) : TopLevel() {
-    val annotations: MutableList<Annotation> = mutableListOf()
-    fun addAnnotation(annotation: Annotation) {
-        this.annotations.add(annotation)
-    }
-}
+data class Junk(val content: String, val annotations: List<Annotation>) : TopLevel()
 
 /**
  * Represents top-level whitespace
@@ -159,8 +145,6 @@ data class Junk(val content: String) : TopLevel() {
  */
 data class Whitespace(val content: String) : TopLevel()
 
-data class Span(var start: Int, var end: Int) : BaseNode()
+data class Span(val start: Int, val end: Int = start) : BaseNode()
 
-data class Annotation(var code: String, var message: String) : SyntaxNode() {
-    val arguments: MutableList<Any> = mutableListOf()
-}
+class Annotation(val code: String, val message: String, val arguments: List<Any>, span: Span) : SyntaxNode(span)
