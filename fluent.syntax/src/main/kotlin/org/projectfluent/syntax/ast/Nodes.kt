@@ -24,12 +24,10 @@ abstract class BaseNode {
         if (this::class != other::class) {
             return false
         }
-        val otherMembers = publicMemberProperties(other::class, ignoredFields)
-                .associate { it.name to it.getter.call(other) }
         return publicMemberProperties(this::class, ignoredFields)
                 .all {
                     val thisValue = it.getter.call(this)
-                    val otherValue = otherMembers[it.name]
+                    val otherValue = it.getter.call(other)
                     if (thisValue is Collection<*> && otherValue is Collection<*>) {
                         if (thisValue.size == otherValue.size) {
                             thisValue.zip(otherValue).all { (a, b) -> scalarsEqual(a, b, ignoredFields) }
