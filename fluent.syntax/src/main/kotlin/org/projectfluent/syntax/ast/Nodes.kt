@@ -57,7 +57,7 @@ abstract class SyntaxNode(val span: Span? = null) : BaseNode()
  * A Fluent file representation
  */
 class Resource(vararg children: TopLevel) : SyntaxNode() {
-    val body: List<TopLevel> = children.asList()
+    var body: List<TopLevel> = children.asList()
 }
 
 abstract class TopLevel : SyntaxNode()
@@ -68,16 +68,16 @@ abstract class TopLevel : SyntaxNode()
 abstract class Entry : TopLevel()
 
 data class Message(
-        val id: Identifier,
-        val value: Pattern?,
-        val attributes: List<Attribute>,
+        var id: Identifier,
+        var value: Pattern?,
+        var attributes: List<Attribute>,
         var comment: Comment? = null
 ) : Entry()
 
 data class Term(
-        val id: Identifier,
-        val value: Pattern,
-        val attributes: List<Attribute>,
+        var id: Identifier,
+        var value: Pattern,
+        var attributes: List<Attribute>,
         var comment: Comment? = null
 ) : Entry()
 
