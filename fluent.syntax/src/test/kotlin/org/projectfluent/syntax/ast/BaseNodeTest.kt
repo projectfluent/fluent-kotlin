@@ -7,9 +7,9 @@ import org.projectfluent.syntax.parser.FluentParser
 class BaseNodeTest {
     val parser = FluentParser()
     @Test fun test_equals() {
-        val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")))
+        val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")), emptyList())
         assertTrue(m1.nodeEquals(m1))
-        val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")))
+        val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")), emptyList())
         assertFalse(m1.nodeEquals(m2))
         assertTrue(m1.nodeEquals(m2, arrayOf("span", "value")))
         assertNotEquals(m1, m2)
