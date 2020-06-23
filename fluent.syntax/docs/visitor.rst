@@ -13,7 +13,7 @@ Visitor & childrenOf
     * Use this method if you want to control deep inspection
     * of an AST tree yourself.
     */
-   fun childrenOf(node: BaseNode) = sequence<Pair<String, Any?>> {}
+   fun childrenOf(node: BaseNode) = sequence<Pair<String, Any?>>
 
 
    /**
@@ -29,14 +29,12 @@ Visitor & childrenOf
         *
         * This is the method you want to call on concrete visitor implementations.
         */
-       fun visit(node: BaseNode) {
-       }
-   
+       fun visit(node: BaseNode)
+
    
        /**
         * From concrete `visitNodeType` implementations, call this
         * method to continue iteration into the AST if desired.
         */
-       fun genericVisit(node: BaseNode) {
-       }
+       fun genericVisit(node: BaseNode)
    }

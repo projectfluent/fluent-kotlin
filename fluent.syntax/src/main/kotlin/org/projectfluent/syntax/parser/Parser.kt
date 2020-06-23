@@ -2,8 +2,8 @@ package org.projectfluent.syntax.parser
 
 import org.projectfluent.syntax.ast.*
 
-internal val trailingWSRe = Regex("[ \t\n\r]+\$")
-internal val VALID_FUNCTION_NAME = Regex("^[A-Z][A-Z0-9_-]*\$")
+private val trailingWSRe = Regex("[ \t\n\r]+\$")
+private val VALID_FUNCTION_NAME = Regex("^[A-Z][A-Z0-9_-]*\$")
 
 /**
  * Parse Fluent resources.
@@ -732,7 +732,7 @@ class FluentParser(var withSpans: Boolean = false) {
     }
 }
 
-internal data class Indent(var value: String) : PatternElement() {
+private data class Indent(var value: String) : PatternElement() {
     constructor(value: String, start: Int, end: Int) : this(value) {
         this.addSpan(start, end)
     }

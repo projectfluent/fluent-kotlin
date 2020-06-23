@@ -17,4 +17,4 @@ processing of Fluent files.
    :caption: Packages
    :maxdepth: 1
 
-   org.projectfluent:syntax <https://pike.github.io//fluent-kotlin/fluent.syntax/>
+   org.projectfluent:syntax <https://pike.github.io/fluent-kotlin/fluent.syntax/>

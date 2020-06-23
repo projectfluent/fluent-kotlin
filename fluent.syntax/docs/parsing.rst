@@ -14,5 +14,5 @@ Parsing
     */
    class FluentParser(var withSpans: Boolean = false) {
 
-       fun parse(source: String): Resource {
-       }
+       fun parse(source: String): Resource
+   }
