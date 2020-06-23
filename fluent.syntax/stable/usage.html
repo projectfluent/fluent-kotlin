@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using syntax &#8212; fluent.syntax 0.1 documentation</title>
+    <link rel="stylesheet" href="/fluent-kotlin/_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="/fluent-kotlin/_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="/fluent-kotlin/_static/project-fluent.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="/fluent-kotlin/_static/jquery.js"></script>
+    <script src="/fluent-kotlin/_static/underscore.js"></script>
+    <script src="/fluent-kotlin/_static/doctools.js"></script>
+    <script src="/fluent-kotlin/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="reference.html" />
+    <link rel="prev" title="Fluent Syntax" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="API Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Fluent Syntax"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fluent.syntax 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Using syntax</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="using-syntax">
+<h1>Using syntax<a class="headerlink" href="#using-syntax" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">org.projectfluent:syntax</span></code> package provides a parser, a serializer, and libraries
+for analysis and processing of Fluent files.</p>
+<div class="section" id="parsing">
+<h2>Parsing<a class="headerlink" href="#parsing" title="Permalink to this headline">¶</a></h2>
+<p>To parse a full resource, you can use the <code class="xref py py-class docutils literal notranslate"><span class="pre">syntax.parser.Parser</span></code>:</p>
+<div class="highlight-kotlin notranslate"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">org.projectfluent.syntax.parser.FluentParser</span>
+<span class="k">val</span> <span class="py">parser</span> <span class="p">=</span> <span class="n">FluentParser</span><span class="p">()</span>
+<span class="k">val</span> <span class="py">resource</span> <span class="p">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">parse</span><span class="p">(</span><span class="s">&quot;a-key = String to localize&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serialization">
+<h2>Serialization<a class="headerlink" href="#serialization" title="Permalink to this headline">¶</a></h2>
+<p>To create Fluent syntax from AST objects, use
+<code class="xref py py-class docutils literal notranslate"><span class="pre">syntax.serializer.FluentSerializer</span></code>.</p>
+<div class="highlight-kotlin notranslate"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">org.projectfluent.syntax.serializer.FluentSerializer</span>
+<span class="k">val</span> <span class="py">serializer</span> <span class="p">=</span> <span class="n">FluentSerializer</span><span class="p">()</span>
+<span class="n">serializer</span><span class="p">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span>
+<span class="n">serializer</span><span class="p">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">resource</span><span class="p">.</span><span class="n">body</span><span class="p">[</span><span class="m">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="analysis-visitor">
+<h2>Analysis (Visitor)<a class="headerlink" href="#analysis-visitor" title="Permalink to this headline">¶</a></h2>
+<p>To analyze an AST tree in a read-only fashion, you can subclass
+<code class="xref py py-class docutils literal notranslate"><span class="pre">syntax.visitor.Visitor</span></code>.</p>
+<p>You overload individual <code class="xref py py-func docutils literal notranslate"><span class="pre">visitNodeName()</span></code> methods to
+handle nodes of that type, and then call into :py:func`self.genericVisit`
+to continue iteration.</p>
+<div class="highlight-kotlin notranslate"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">org.projectfluent.syntax.ast.TextElement</span>
+<span class="k">import</span> <span class="nn">org.projectfluent.syntax.visitor.Visitor</span>
+<span class="k">class</span> <span class="nc">TestableVisitor</span> <span class="p">:</span> <span class="n">Visitor</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="py">wordCount</span> <span class="p">=</span> <span class="m">0</span>
+    <span class="k">val</span> <span class="py">WORDS</span> <span class="p">=</span> <span class="n">Regex</span><span class="p">(</span><span class="s">&quot;\\w+&quot;</span><span class="p">)</span>
+    <span class="k">fun</span> <span class="nf">visitTextElement</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">TextElement</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">wordCount</span> <span class="p">+=</span> <span class="n">WORDS</span><span class="p">.</span><span class="n">findAll</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">value</span><span class="p">).</span><span class="n">count</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="custom-traversal-childrenof">
+<h2>Custom Traversal (childrenOf)<a class="headerlink" href="#custom-traversal-childrenof" title="Permalink to this headline">¶</a></h2>
+<p>The Python and TypeScript implementations feature a <code class="docutils literal notranslate"><span class="pre">Transformer</span></code>
+pattern, which allows to process and transform an AST in-place. Those
+implementations rely heavily on dynamic typing to allow the return of
+different types, which doesn’t work in Kotlin. Thus, transformations of
+syntax trees need to be written manually, but there’s a helper to
+iterate over children.</p>
+<div class="highlight-kotlin notranslate"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="py">variant</span> <span class="p">=</span> <span class="n">Variant</span><span class="p">(</span><span class="n">Identifier</span><span class="p">(</span><span class="s">&quot;other&quot;</span><span class="p">),</span> <span class="n">Pattern</span><span class="p">(),</span> <span class="k">true</span><span class="p">)</span>
+<span class="k">val</span> <span class="py">variant_props</span> <span class="p">=</span> <span class="n">childrenOf</span><span class="p">(</span><span class="n">variant</span><span class="p">)</span>
+<span class="n">assertEquals</span><span class="p">(</span>
+    <span class="n">listOf</span><span class="p">(</span><span class="s">&quot;default&quot;</span><span class="p">,</span> <span class="s">&quot;key&quot;</span><span class="p">,</span> <span class="s">&quot;span&quot;</span><span class="p">,</span> <span class="s">&quot;value&quot;</span><span class="p">),</span>
+    <span class="n">variant_props</span><span class="p">.</span><span class="n">map</span> <span class="p">{</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">name</span> <span class="p">}.</span><span class="n">sorted</span><span class="p">().</span><span class="n">toList</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using syntax</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parsing">Parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#serialization">Serialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-visitor">Analysis (Visitor)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-traversal-childrenof">Custom Traversal (childrenOf)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="API Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Fluent Syntax"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fluent.syntax 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Using syntax</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        fluent-kotlin documentation is licensed under the APL 2.0.
+    </div>
+  </body>
+</html>

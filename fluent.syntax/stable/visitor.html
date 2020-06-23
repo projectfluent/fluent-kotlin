@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor &amp; childrenOf &#8212; fluent.syntax 0.1 documentation</title>
+    <link rel="stylesheet" href="/fluent-kotlin/_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="/fluent-kotlin/_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="/fluent-kotlin/_static/project-fluent.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="/fluent-kotlin/_static/jquery.js"></script>
+    <script src="/fluent-kotlin/_static/underscore.js"></script>
+    <script src="/fluent-kotlin/_static/doctools.js"></script>
+    <script src="/fluent-kotlin/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Serializing" href="serializing.html" />
+    <link rel="prev" title="AST" href="ast.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="serializing.html" title="Serializing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ast.html" title="AST"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fluent.syntax 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Visitor &amp; childrenOf</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="visitor-childrenof">
+<h1>Visitor &amp; childrenOf<a class="headerlink" href="#visitor-childrenof" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-kotlin notranslate"><div class="highlight"><pre><span></span><span class="k">package</span> <span class="nn">org.projectfluent.syntax.visitor</span>
+
+<span class="k">import</span> <span class="nn">org.projectfluent.syntax.ast.BaseNode</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Iterate over the properties of a node.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Use this method if you want to control deep inspection</span>
+<span class="cm"> * of an AST tree yourself.</span>
+<span class="cm"> */</span>
+<span class="k">fun</span> <span class="nf">childrenOf</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">BaseNode</span><span class="p">)</span> <span class="p">=</span> <span class="n">sequence</span><span class="p">&lt;</span><span class="n">Pair</span><span class="p">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Any</span><span class="p">?&gt;&gt;</span>
+
+
+<span class="cm">/**</span>
+<span class="cm"> * Generic Visitor base class.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Implement public visitNodeType methods to add handling to AST node types,</span>
+<span class="cm"> * e.g. `visitResource(node: Resource)` to handle the `Resource` node type.</span>
+<span class="cm"> */</span>
+<span class="k">abstract</span> <span class="k">class</span> <span class="nc">Visitor</span> <span class="p">{</span>
+
+    <span class="cm">/**</span>
+<span class="cm">     * Primary entry point for all visitors.</span>
+<span class="cm">     *</span>
+<span class="cm">     * This is the method you want to call on concrete visitor implementations.</span>
+<span class="cm">     */</span>
+    <span class="k">fun</span> <span class="nf">visit</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">BaseNode</span><span class="p">)</span>
+
+
+    <span class="cm">/**</span>
+<span class="cm">     * From concrete `visitNodeType` implementations, call this</span>
+<span class="cm">     * method to continue iteration into the AST if desired.</span>
+<span class="cm">     */</span>
+    <span class="k">fun</span> <span class="nf">genericVisit</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">BaseNode</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using syntax</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parsing.html">Parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ast.html">AST</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Visitor &amp; childrenOf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializing.html">Serializing</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="serializing.html" title="Serializing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ast.html" title="AST"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fluent.syntax 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference.html" >API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Visitor &amp; childrenOf</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        fluent-kotlin documentation is licensed under the APL 2.0.
+    </div>
+  </body>
+</html>

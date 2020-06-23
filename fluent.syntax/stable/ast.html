@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AST &#8212; fluent.syntax 0.1 documentation</title>
+    <link rel="stylesheet" href="/fluent-kotlin/_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="/fluent-kotlin/_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="/fluent-kotlin/_static/project-fluent.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="/fluent-kotlin/_static/jquery.js"></script>
+    <script src="/fluent-kotlin/_static/underscore.js"></script>
+    <script src="/fluent-kotlin/_static/doctools.js"></script>
+    <script src="/fluent-kotlin/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visitor &amp; childrenOf" href="visitor.html" />
+    <link rel="prev" title="Parsing" href="parsing.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="visitor.html" title="Visitor &amp; childrenOf"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="parsing.html" title="Parsing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fluent.syntax 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">AST</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="ast">
+<h1>AST<a class="headerlink" href="#ast" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>package org.projectfluent.syntax.ast
+
+import kotlin.reflect.KVisibility
+import kotlin.reflect.full.memberProperties
+
+/**
+ * Base class for all Fluent AST nodes.
+ *
+ * All productions described in the ASDL subclass BaseNode, including Span and
+ * Annotation.
+ *
+ */
+abstract class BaseNode {
+    fun nodeEquals(other: BaseNode?, ignoredFields: Array&lt;String&gt; = arrayOf(&quot;span&quot;)): Boolean {
+        if (other == null) return false
+        if (this::class != other::class) return false
+        val otherMembers = hashMapOf&lt;String, Any?&gt;()
+        other::class.memberProperties.forEach {
+            if (it.visibility == KVisibility.PUBLIC &amp;&amp; ! ignoredFields.contains(it.name)) {
+                otherMembers[it.name] = it.getter.call(other)
+            }
+        }
+        this::class.memberProperties.forEach {
+            if (it.name in otherMembers) {
+                val value = it.getter.call(this)
+                val otherValue = otherMembers[it.name]
+                if (value is Collection&lt;*&gt; &amp;&amp; otherValue is Collection&lt;*&gt;) {
+                    if (value.size != otherValue.size) return false
+                    for ((left, right) in value.zip(otherValue)) {
+                        if (! scalarsEqual(left!!, right!!, ignoredFields)) return false
+                    }
+                } else if (! scalarsEqual(value, otherValue, ignoredFields)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is BaseNode) return this.nodeEquals(other, arrayOf())
+        return false
+    }
+}
+
+private fun scalarsEqual(left: Any?, right: Any?, ignoredFields: Array&lt;String&gt;): Boolean {
+    if (left is BaseNode &amp;&amp; right is BaseNode) return left.nodeEquals(right, ignoredFields = ignoredFields)
+    return left == right
+}
+
+/**
+ * Base class for AST nodes which can have Spans.
+ */
+abstract class SyntaxNode : BaseNode() {
+    var span: Span? = null
+    fun addSpan(start: Int, end: Int) {
+        this.span = Span(start, end)
+    }
+}
+
+/**
+ * A Fluent file representation
+ */
+class Resource(vararg children: TopLevel) : SyntaxNode() {
+    val body: MutableList&lt;TopLevel&gt; = mutableListOf()
+
+    init {
+        this.body += children
+    }
+}
+
+abstract class TopLevel : SyntaxNode()
+
+/**
+ * An abstract base class for useful elements of Resource.body.
+ */
+abstract class Entry : TopLevel()
+
+data class Message(var id: Identifier, var value: Pattern?) : Entry() {
+    var attributes: MutableList&lt;Attribute&gt; = mutableListOf()
+    var comment: Comment? = null
+}
+
+data class Term(var id: Identifier, var value: Pattern) : Entry() {
+    var attributes: MutableList&lt;Attribute&gt; = mutableListOf()
+    var comment: Comment? = null
+}
+
+class Pattern(vararg elements: PatternElement) : SyntaxNode() {
+    val elements: MutableList&lt;PatternElement&gt; = mutableListOf()
+
+    init {
+        this.elements += elements
+    }
+}
+
+abstract class PatternElement : SyntaxNode()
+
+data class TextElement(var value: String) : PatternElement()
+
+interface InsidePlaceable
+
+data class Placeable(var expression: InsidePlaceable) : InsidePlaceable, PatternElement()
+
+abstract class Expression : CallArgument, InsidePlaceable, SyntaxNode()
+
+abstract class Literal(val value: String) : Expression()
+
+class StringLiteral(value: String) : Literal(value)
+
+class NumberLiteral(value: String) : VariantKey, Literal(value)
+
+data class MessageReference(var id: Identifier, var attribute: Identifier? = null) : Expression()
+
+data class TermReference(var id: Identifier, var attribute: Identifier? = null, var arguments: CallArguments? = null) : Expression()
+
+data class VariableReference(var id: Identifier) : Expression()
+
+data class FunctionReference(var id: Identifier, var arguments: CallArguments) : Expression()
+
+data class SelectExpression(var selector: Expression, var variants: MutableList&lt;Variant&gt;) : Expression()
+
+interface CallArgument
+
+class CallArguments : SyntaxNode() {
+    val positional: MutableList&lt;Expression&gt; = mutableListOf()
+    val named: MutableList&lt;NamedArgument&gt; = mutableListOf()
+}
+
+data class Attribute(var id: Identifier, var value: Pattern) : SyntaxNode()
+
+interface VariantKey
+
+data class Variant(var key: VariantKey, var value: Pattern, var default: Boolean) : SyntaxNode()
+
+data class NamedArgument(var name: Identifier, var value: Literal) : CallArgument, SyntaxNode()
+
+data class Identifier(var name: String) : VariantKey, SyntaxNode()
+
+abstract class BaseComment(var content: String) : Entry()
+
+class Comment(content: String) : BaseComment(content)
+
+class GroupComment(content: String) : BaseComment(content)
+
+class ResourceComment(content: String) : BaseComment(content)
+
+data class Junk(val content: String) : TopLevel() {
+    val annotations: MutableList&lt;Annotation&gt; = mutableListOf()
+    fun addAnnotation(annotation: Annotation) {
+        this.annotations.add(annotation)
+    }
+}
+
+/**
+ * Represents top-level whitespace
+ *
+ * Extension of the data model in other implementations.
+ */
+data class Whitespace(val content: String) : TopLevel()
+
+data class Span(var start: Int, var end: Int) : BaseNode()
+
+data class Annotation(var code: String, var message: String) : SyntaxNode() {
+    val arguments: MutableList&lt;Any&gt; = mutableListOf()
+}
+</pre></div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using syntax</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parsing.html">Parsing</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">AST</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visitor.html">Visitor &amp; childrenOf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializing.html">Serializing</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="visitor.html" title="Visitor &amp; childrenOf"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="parsing.html" title="Parsing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">fluent.syntax 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference.html" >API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">AST</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        fluent-kotlin documentation is licensed under the APL 2.0.
+    </div>
+  </body>
+</html>
