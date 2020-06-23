@@ -2,7 +2,7 @@ package org.projectfluent.syntax.parser
 
 import kotlin.Exception
 
-class ParseError(var code: String, vararg args: Any) : Exception(getErrorMessage(code, *args)) {
+internal class ParseError(var code: String, vararg args: Any) : Exception(getErrorMessage(code, *args)) {
     val args: MutableList<Any> = mutableListOf()
 
     init {
@@ -10,7 +10,7 @@ class ParseError(var code: String, vararg args: Any) : Exception(getErrorMessage
     }
 }
 
-fun getErrorMessage(code: String, vararg args: Any): String {
+internal fun getErrorMessage(code: String, vararg args: Any): String {
     return when (code) {
         "E0001" -> "Generic Error"
         "E0002" -> "Expected an entry start"

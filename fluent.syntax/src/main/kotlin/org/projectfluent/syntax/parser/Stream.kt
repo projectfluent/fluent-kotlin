@@ -1,6 +1,6 @@
 package org.projectfluent.syntax.parser
 
-open class ParserStream(var string: String) {
+internal open class ParserStream(var string: String) {
     var index: Int = 0
     var peekOffset: Int = 0
 
@@ -56,11 +56,11 @@ open class ParserStream(var string: String) {
     }
 }
 
-const val EOL = '\n'
-val EOF: Char? = null
-const val SPECIAL_LINE_START_CHARS = "}.[*"
+internal const val EOL = '\n'
+internal val EOF: Char? = null
+internal const val SPECIAL_LINE_START_CHARS = "}.[*"
 
-class FluentStream(string: String) : ParserStream(string) {
+internal class FluentStream(string: String) : ParserStream(string) {
 
     fun peekBlankInline(): String {
         val start = this.index + this.peekOffset

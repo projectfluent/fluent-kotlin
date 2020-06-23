@@ -1,9 +1,15 @@
+group = "org.projectfluent"
+version = "0.1"
+
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
     kotlin("jvm") version "1.3.72"
 
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+
+    // Add dokka to be able to generate documentation.
+    id("org.jetbrains.dokka") version "0.10.1"
 }
 
 repositories {
