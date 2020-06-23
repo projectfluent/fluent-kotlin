@@ -20,15 +20,12 @@ abstract class BaseNode {
                 false
             }
 
-    fun equals(other: BaseNode, ignoredFields: Set<String> = setOf("span")): Boolean {
-        if (this::class != other::class) {
-            return false
-        }
-        return publicMemberProperties(this::class, ignoredFields)
-                .all {
+    fun equals(other: BaseNode, ignoredFields: Set<String> = setOf("span")): Boolean =
+            if (this::class == other::class) {
+                publicMemberProperties(this::class, ignoredFields).all {
                     val thisValue = it.getter.call(this)
                     val otherValue = it.getter.call(other)
-                    if (thisValue is Collection<*> && otherValue is Collection<*>) {
+                    if (thisValue is Collection<*> && otherValue is Collection<*> && thisValue.size == otherValue.size) {
                         if (thisValue.size == otherValue.size) {
                             thisValue.zip(otherValue).all { (a, b) -> scalarsEqual(a, b, ignoredFields) }
                         } else {
@@ -38,7 +35,9 @@ abstract class BaseNode {
                         scalarsEqual(thisValue, otherValue, ignoredFields)
                     }
                 }
-    }
+            } else {
+                false
+            }
 
     private companion object {
         private fun publicMemberProperties(clazz: KClass<*>, ignoredFields: Set<String>) =
