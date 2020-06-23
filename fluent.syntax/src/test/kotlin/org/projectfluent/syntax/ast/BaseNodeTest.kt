@@ -9,8 +9,8 @@ class BaseNodeTest {
 
     @Test
     fun testEquals() {
-        val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")))
-        val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")))
+        val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")), emptyList())
+        val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")), emptyList())
 
         assertEquals(m1, m1)
         assertNotEquals(m1, m2)
@@ -22,8 +22,8 @@ class BaseNodeTest {
 
     @Test
     fun testEqualsWithIgnoredFields() {
-        val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")))
-        val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")))
+        val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")), emptyList())
+        val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")), emptyList())
 
         assertTrue(m1.equals(m2, setOf("span", "value")))
     }
