@@ -1,0 +1,8 @@
+[src/test/**/*.{kt,kts}]
+# Allow wildcard imports in tests.
+disabled_rules=no-wildcard-imports
+
+[src/main/kotlin/org/projectfluent/syntax/serializer/Error.kt]
+# We only have a single error class right now. We might get more,
+# so let's stick to a generic file name.
+disabled_rules=filename

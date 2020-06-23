@@ -13,6 +13,12 @@ The `syntax package <fluent.syntax>`_ includes the parser, serializer, and trave
 utilities like Visitor. You’re looking for this package
 if you work on tooling for Fluent in Kotlin or Java.
 
+Contribute
+----------
+
+The Kotlin sources in this project use `ktlint <https://ktlint.github.io/>`__.
+Please run ``ktlint -F`` before submitting patches.
+
 Discuss
 -------
 

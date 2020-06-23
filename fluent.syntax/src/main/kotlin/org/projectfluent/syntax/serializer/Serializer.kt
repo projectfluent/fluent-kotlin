@@ -1,6 +1,6 @@
 package org.projectfluent.syntax.serializer
 
-import org.projectfluent.syntax.ast.*
+import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 
 private fun indent(content: CharSequence): String {
     return content.split("\n").joinToString("\n    ")

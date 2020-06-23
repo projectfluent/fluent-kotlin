@@ -1,6 +1,6 @@
 package org.projectfluent.syntax.parser
 
-import org.projectfluent.syntax.ast.*
+import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 
 private val trailingWSRe = Regex("[ \t\n\r]+\$")
 private val VALID_FUNCTION_NAME = Regex("^[A-Z][A-Z0-9_-]*\$")
