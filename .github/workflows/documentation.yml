@@ -9,7 +9,7 @@ on:
     paths:
       - docs/**
       - fluent.*/docs/**
-      - fluent.*/fluent/**
+      - fluent.syntax/src/main/kotlin/org/projectfluent/syntax/ast/Nodes.kt
       - fluent.*/build.gradle.kts
   pull_request:
     branches:
@@ -17,7 +17,7 @@ on:
     paths:
       - docs/**
       - fluent.*/docs/**
-      - fluent.*/fluent/**
+      - fluent.syntax/src/main/kotlin/org/projectfluent/syntax/ast/Nodes.kt
       - fluent.*/build.gradle.kts
 
 jobs:
