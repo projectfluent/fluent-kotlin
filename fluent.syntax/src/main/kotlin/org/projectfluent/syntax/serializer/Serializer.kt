@@ -73,13 +73,16 @@ class FluentSerializer(private val withJunk: Boolean = false) {
 
     private fun serializeComment(comment: BaseComment, prefix: CharSequence = "#"): CharSequence {
         return comment.content.split("\n")
-            .joinToString("", transform = {
-                if (it.isNotEmpty()) {
-                    "$prefix $it\n"
-                } else {
-                    "$prefix\n"
+            .joinToString(
+                "",
+                transform = {
+                    if (it.isNotEmpty()) {
+                        "$prefix $it\n"
+                    } else {
+                        "$prefix\n"
+                    }
                 }
-            })
+            )
     }
 
     private fun serializeMessage(message: Message): CharSequence {
