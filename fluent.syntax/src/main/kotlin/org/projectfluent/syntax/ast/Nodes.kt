@@ -4,6 +4,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.jvmName
 
 /**
  * Base class for all Fluent AST nodes.
@@ -47,11 +48,11 @@ abstract class BaseNode {
         }
 
     private companion object {
-        private val publicPropertiesReflectionCache = mutableMapOf<KClass<out BaseNode>, Collection<KProperty<*>>>()
+        private val publicPropertiesReflectionCache = mutableMapOf<String, Collection<KProperty<*>>>()
 
         private fun publicProperties(clazz: KClass<out BaseNode>, ignoredFields: Set<String> = emptySet()) =
             publicPropertiesReflectionCache.getOrPut(
-                clazz,
+                clazz.jvmName,
                 { clazz.memberProperties.filter { it.visibility == KVisibility.PUBLIC } }
             ).filterNot { ignoredFields.contains(it.name) }
 

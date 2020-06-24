@@ -3,6 +3,7 @@ package org.projectfluent.syntax.visitor
 import org.projectfluent.syntax.ast.BaseNode
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmName
 
 /**
  * Generic Visitor base class.
@@ -18,7 +19,7 @@ abstract class Visitor {
      * This is the method you want to call on concrete visitor implementations.
      */
     fun visit(node: BaseNode) {
-        val handler = handlers(this::class)[node::class]
+        val handler = handlers(this::class)[node::class.jvmName]
         if (handler != null) {
             handler.invoke(this, node)
         } else {
@@ -40,19 +41,18 @@ abstract class Visitor {
     }
 
     private companion object {
-        private val handlersReflectionCache =
-            mutableMapOf<KClass<out Visitor>, Map<KClass<out BaseNode>, (Visitor, BaseNode) -> Unit?>>()
+        private val handlersReflectionCache = mutableMapOf<String, Map<String, (Visitor, BaseNode) -> Unit?>>()
 
         private fun handlers(clazz: KClass<out Visitor>) =
             handlersReflectionCache.getOrPut(
-                clazz,
+                clazz.jvmName,
                 {
                     clazz.java.declaredMethods
                         .filter { it.name.startsWith("visit") }
                         .filter { it.parameterCount == 1 && it.parameterTypes[0].kotlin.isSubclassOf(BaseNode::class) }
                         .associate {
                             Pair(
-                                it.parameterTypes[0].kotlin as KClass<out BaseNode>,
+                                it.parameterTypes[0].kotlin.jvmName,
                                 { visitor: Visitor, node: BaseNode -> it.invoke(visitor, node) as Unit? }
                             )
                         }
