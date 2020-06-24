@@ -11,21 +11,20 @@ import kotlin.reflect.full.isSubclassOf
  * e.g. `visitResource(node: Resource)` to handle the `Resource` node type.
  */
 abstract class Visitor {
-    private val handlers: Map<KClass<BaseNode>, (BaseNode) -> Unit?> by lazy {
-        this::class.java.declaredMethods
-            .filter { it.name.startsWith("visit") }
-            .filter { it.parameterCount == 1 && it.parameterTypes[0].kotlin.isSubclassOf(BaseNode::class) }
-            .associate {
-                it.parameterTypes[0].kotlin as KClass<BaseNode> to { node: BaseNode -> it.invoke(this, node) as Unit? }
-            }
-    }
 
     /**
      * Primary entry point for all visitors.
      *
      * This is the method you want to call on concrete visitor implementations.
      */
-    fun visit(node: BaseNode) = (handlers[node::class] ?: this::visitProperties).invoke(node)
+    fun visit(node: BaseNode) {
+        val handler = handlers(this::class)[node::class]
+        if (handler != null) {
+            handler.invoke(this, node)
+        } else {
+            this.visitProperties(node)
+        }
+    }
 
     /**
      * From concrete `visitNodeType` implementations, call this
@@ -38,5 +37,26 @@ abstract class Visitor {
                 is Collection<*> -> value.filterIsInstance<BaseNode>().map { this.visit(it) }
             }
         }
+    }
+
+    private companion object {
+        private val handlersReflectionCache =
+            mutableMapOf<KClass<out Visitor>, Map<KClass<out BaseNode>, (Visitor, BaseNode) -> Unit?>>()
+
+        private fun handlers(clazz: KClass<out Visitor>) =
+            handlersReflectionCache.getOrPut(
+                clazz,
+                {
+                    clazz.java.declaredMethods
+                        .filter { it.name.startsWith("visit") }
+                        .filter { it.parameterCount == 1 && it.parameterTypes[0].kotlin.isSubclassOf(BaseNode::class) }
+                        .associate {
+                            Pair(
+                                it.parameterTypes[0].kotlin as KClass<out BaseNode>,
+                                { visitor: Visitor, node: BaseNode -> it.invoke(visitor, node) as Unit? }
+                            )
+                        }
+                }
+            )
     }
 }
