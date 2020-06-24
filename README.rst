@@ -17,7 +17,7 @@ Contribute
 ----------
 
 The Kotlin sources in this project use `ktlint <https://ktlint.github.io/>`__.
-Please run ``ktlint -F`` before submitting patches.
+To resolve linting errors, run ``./gradlew ktlintFormat`` before submitting patches.
 
 Discuss
 -------

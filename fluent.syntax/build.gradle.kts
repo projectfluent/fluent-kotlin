@@ -10,6 +10,9 @@ plugins {
 
     // Add dokka to be able to generate documentation.
     id("org.jetbrains.dokka") version "0.10.1"
+
+    // Add linting with ktlint
+    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
 }
 
 repositories {
@@ -35,6 +38,10 @@ dependencies {
 
     // Use Klaxon for tests.
     testImplementation("com.beust:klaxon:5.0.1")
+}
+
+ktlint {
+    version.set("0.37.2")
 }
 
 tasks.test {
