@@ -14,43 +14,43 @@ import kotlin.reflect.full.memberProperties
 abstract class BaseNode {
 
     override fun equals(other: Any?) =
-            if (other is BaseNode) {
-                this.equals(other, emptySet())
-            } else {
-                false
-            }
+        if (other is BaseNode) {
+            this.equals(other, emptySet())
+        } else {
+            false
+        }
 
     fun equals(other: BaseNode, ignoredFields: Set<String> = setOf("span")): Boolean =
-            if (this::class == other::class) {
-                publicMemberProperties(this::class, ignoredFields).all {
-                    val thisValue = it.getter.call(this)
-                    val otherValue = it.getter.call(other)
-                    if (thisValue is Collection<*> && otherValue is Collection<*>) {
-                        if (thisValue.size == otherValue.size) {
-                            thisValue.zip(otherValue).all { (a, b) -> scalarsEqual(a, b, ignoredFields) }
-                        } else {
-                            false
-                        }
+        if (this::class == other::class) {
+            publicMemberProperties(this::class, ignoredFields).all {
+                val thisValue = it.getter.call(this)
+                val otherValue = it.getter.call(other)
+                if (thisValue is Collection<*> && otherValue is Collection<*>) {
+                    if (thisValue.size == otherValue.size) {
+                        thisValue.zip(otherValue).all { (a, b) -> scalarsEqual(a, b, ignoredFields) }
                     } else {
-                        scalarsEqual(thisValue, otherValue, ignoredFields)
+                        false
                     }
+                } else {
+                    scalarsEqual(thisValue, otherValue, ignoredFields)
                 }
-            } else {
-                false
             }
+        } else {
+            false
+        }
 
     private companion object {
         private fun publicMemberProperties(clazz: KClass<*>, ignoredFields: Set<String>) =
-                clazz.memberProperties
-                        .filter { it.visibility == KVisibility.PUBLIC }
-                        .filterNot { ignoredFields.contains(it.name) }
+            clazz.memberProperties
+                .filter { it.visibility == KVisibility.PUBLIC }
+                .filterNot { ignoredFields.contains(it.name) }
 
         private fun scalarsEqual(left: Any?, right: Any?, ignoredFields: Set<String>) =
-                if (left is BaseNode && right is BaseNode) {
-                    left.equals(right, ignoredFields)
-                } else {
-                    left == right
-                }
+            if (left is BaseNode && right is BaseNode) {
+                left.equals(right, ignoredFields)
+            } else {
+                left == right
+            }
     }
 }
 
@@ -118,7 +118,8 @@ class NumberLiteral(value: String) : VariantKey, Literal(value)
 
 class MessageReference(var id: Identifier, var attribute: Identifier? = null) : Expression()
 
-class TermReference(var id: Identifier, var attribute: Identifier? = null, var arguments: CallArguments? = null) : Expression()
+class TermReference(var id: Identifier, var attribute: Identifier? = null, var arguments: CallArguments? = null) :
+    Expression()
 
 class VariableReference(var id: Identifier) : Expression()
 

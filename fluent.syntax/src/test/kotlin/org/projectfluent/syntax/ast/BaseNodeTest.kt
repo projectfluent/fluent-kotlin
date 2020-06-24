@@ -30,20 +30,24 @@ class BaseNodeTest {
 
     @Test
     fun variantOrderIsImportantForEquals() {
-        val resource1 = this.parser.parse("""
+        val resource1 = this.parser.parse(
+            """
             |msg = { ${'$'}val ->
             |  [few] things
             |  [1] one
             | *[other] default
             |}
-        """.trimMargin())
-        val resource2 = this.parser.parse("""
+        """.trimMargin()
+        )
+        val resource2 = this.parser.parse(
+            """
             |msg = { ${'$'}val ->
             |  [few] things
             | *[other] default
             |  [1] one
             |}
-        """.trimMargin())
+        """.trimMargin()
+        )
 
         assertTrue(resource1.body[0].equals(resource2.body[0], ignoredFields = setOf("span", "variants")))
         assertNotEquals(resource1.body[0], resource2.body[0])
@@ -51,16 +55,20 @@ class BaseNodeTest {
 
     @Test
     fun attributeOrderIsImportantForEquals() {
-        val resource1 = this.parser.parse("""
+        val resource1 = this.parser.parse(
+            """
             |msg =
             |  .attr1 = one
             |  .attr2 = two
-        """.trimMargin())
-        val resource2 = this.parser.parse("""
+        """.trimMargin()
+        )
+        val resource2 = this.parser.parse(
+            """
             |msg =
             |  .attr2 = two
             |  .attr1 = one
-        """.trimMargin())
+        """.trimMargin()
+        )
 
         assertTrue(resource1.body[0].equals(resource2.body[0], ignoredFields = setOf("span", "attributes")))
         assertNotEquals(resource1.body[0], resource2.body[0])
