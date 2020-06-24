@@ -1,5 +1,6 @@
 package org.projectfluent.syntax.ast
 
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
@@ -48,7 +49,7 @@ abstract class BaseNode {
         }
 
     private companion object {
-        private val publicPropertiesReflectionCache = mutableMapOf<String, Collection<KProperty<*>>>()
+        private val publicPropertiesReflectionCache = ConcurrentHashMap<String, Collection<KProperty<*>>>()
 
         private fun publicProperties(clazz: KClass<out BaseNode>, ignoredFields: Set<String> = emptySet()) =
             publicPropertiesReflectionCache.getOrPut(

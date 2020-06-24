@@ -1,6 +1,7 @@
 package org.projectfluent.syntax.visitor
 
 import org.projectfluent.syntax.ast.BaseNode
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmName
@@ -41,7 +42,7 @@ abstract class Visitor {
     }
 
     private companion object {
-        private val handlersReflectionCache = mutableMapOf<String, Map<String, (Visitor, BaseNode) -> Unit?>>()
+        private val handlersReflectionCache = ConcurrentHashMap<String, Map<String, (Visitor, BaseNode) -> Unit?>>()
 
         private fun handlers(clazz: KClass<out Visitor>) =
             handlersReflectionCache.getOrPut(
