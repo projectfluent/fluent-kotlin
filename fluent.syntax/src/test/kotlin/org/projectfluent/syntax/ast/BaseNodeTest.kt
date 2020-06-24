@@ -8,6 +8,16 @@ class BaseNodeTest {
     private val parser = FluentParser()
 
     @Test
+    fun publicProperties() {
+        val variant = Variant(Identifier("other"), Pattern(), true)
+
+        assertEquals(
+            setOf("default", "key", "span", "value"),
+            variant.properties().map { it.first }.toSet()
+        )
+    }
+
+    @Test
     fun testEquals() {
         val m1 = Message(Identifier("test-id"), Pattern(TextElement("localized")))
         val m2 = Message(Identifier("test-id"), Pattern(TextElement("different")))
