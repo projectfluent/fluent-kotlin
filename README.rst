@@ -17,7 +17,11 @@ Contribute
 ----------
 
 The Kotlin sources in this project use `ktlint <https://ktlint.github.io/>`__.
-To resolve linting errors, run ``./gradlew ktlintFormat`` before submitting patches.
+To run tests and resolve linting errors, run the following commands before submitting
+patches.
+
+- ``./fluent.syntax/gradlew test -p './fluent.syntax'``
+- ``./fluent.syntax/gradlew ktlintFormat -p './fluent.syntax'``
 
 Discuss
 -------
