@@ -22,7 +22,7 @@ abstract class Visitor {
         if (handler != null) {
             handler.invoke(this, node)
         } else {
-            this.visitProperties(node)
+            this.genericVisit(node)
         }
     }
 
@@ -30,7 +30,7 @@ abstract class Visitor {
      * From concrete `visitNodeType` implementations, call this
      * method to continue iteration into the AST if desired.
      */
-    fun visitProperties(node: BaseNode) {
+    fun genericVisit(node: BaseNode) {
         node.properties().forEach { (_, value) ->
             when (value) {
                 is BaseNode -> this.visit(value)

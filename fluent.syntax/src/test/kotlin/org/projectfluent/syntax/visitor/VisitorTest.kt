@@ -36,12 +36,12 @@ private class TestableVisitor : Visitor() {
 
     fun visitPattern(node: Pattern) {
         patternCount++
-        visitProperties(node)
+        genericVisit(node)
     }
 
     fun visitVariant(node: Variant) {
         variantCount++
-        visitProperties(node)
+        genericVisit(node)
     }
 
     fun visitTextElement(node: TextElement) {

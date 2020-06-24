@@ -21,7 +21,7 @@ public class JavaWordCounter extends Visitor {
 
     public void visitResource(Resource node) {
         System.out.println("resource");
-        this.visitProperties(node);
+        this.genericVisit(node);
     }
 
     public void visitTextElement(TextElement node) {
