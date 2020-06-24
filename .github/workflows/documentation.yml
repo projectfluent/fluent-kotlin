@@ -11,6 +11,7 @@ on:
       - fluent.*/docs/**
       - fluent.syntax/src/main/kotlin/org/projectfluent/syntax/ast/Nodes.kt
       - fluent.*/build.gradle.kts
+      - .github/workflows/documentation.yml
   pull_request:
     branches:
       - master
@@ -19,6 +20,7 @@ on:
       - fluent.*/docs/**
       - fluent.syntax/src/main/kotlin/org/projectfluent/syntax/ast/Nodes.kt
       - fluent.*/build.gradle.kts
+      - .github/workflows/documentation.yml
 
 jobs:
   build:
