@@ -1,2 +1,4 @@
+# Ignore Gradle caches
+.gradle
 # Ignore sphinx build output directory
 _build
