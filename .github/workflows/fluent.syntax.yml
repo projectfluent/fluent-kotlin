@@ -20,7 +20,7 @@ jobs:
       working-directory: ./fluent.syntax
       run: ./gradlew test
   lint:
-    name: lint Kotlin
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
