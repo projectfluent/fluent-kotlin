@@ -24,4 +24,4 @@ if you work on tooling for Fluent in Kotlin or Java.
 
 
 .. _fluent: https://projectfluent.org/
-.. |fluent.syntax| image:: https://github.com/Pike/fluent-kotlin/workflows/fluent.syntax/badge.svg
+.. |fluent.syntax| image:: https://github.com/projectfluent/fluent-kotlin/workflows/fluent.syntax/badge.svg
