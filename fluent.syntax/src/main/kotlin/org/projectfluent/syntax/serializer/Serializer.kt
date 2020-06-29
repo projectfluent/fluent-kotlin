@@ -2,17 +2,11 @@ package org.projectfluent.syntax.serializer
 
 import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 
-private fun indent(content: CharSequence): CharSequence {
-    return content.split("\n").joinToString("\n    ")
-}
+private fun indent(content: CharSequence) = content.split("\n").joinToString("\n    ")
 
-private fun PatternElement.includesLine(): Boolean {
-    return this is TextElement && value.contains("\n")
-}
+private fun PatternElement.includesLine() = this is TextElement && value.contains("\n")
 
-private fun PatternElement.isSelectExpr(): Boolean {
-    return this is Placeable && expression is SelectExpression
-}
+private fun PatternElement.isSelectExpr() = this is Placeable && expression is SelectExpression
 
 /**
  * Serialize Fluent nodes to `CharSequence`.
@@ -60,8 +54,8 @@ class FluentSerializer(private val withJunk: Boolean = false) {
      */
     fun serialize(key: VariantKey): CharSequence = serializeVariantKey(key)
 
-    private fun serializeEntry(entry: Entry): CharSequence {
-        return when (entry) {
+    private fun serializeEntry(entry: Entry) =
+        when (entry) {
             is Message -> serializeMessage(entry)
             is Term -> serializeTerm(entry)
             is Comment -> serializeComment(entry, "#")
@@ -69,10 +63,9 @@ class FluentSerializer(private val withJunk: Boolean = false) {
             is ResourceComment -> serializeComment(entry, "###")
             else -> throw SerializeError("Unknown entry type: $entry")
         }
-    }
 
-    private fun serializeComment(comment: BaseComment, prefix: CharSequence = "#"): CharSequence {
-        return comment.content.split("\n")
+    private fun serializeComment(comment: BaseComment, prefix: CharSequence = "#") =
+        comment.content.split("\n")
             .joinToString(
                 "",
                 transform = {
@@ -83,7 +76,6 @@ class FluentSerializer(private val withJunk: Boolean = false) {
                     }
                 }
             )
-    }
 
     private fun serializeMessage(message: Message): CharSequence {
         val builder = StringBuilder()
@@ -141,16 +133,15 @@ class FluentSerializer(private val withJunk: Boolean = false) {
         }
     }
 
-    private fun serializeElement(element: PatternElement): CharSequence {
-        return when (element) {
+    private fun serializeElement(element: PatternElement) =
+        when (element) {
             is TextElement -> element.value
             is Placeable -> serializePlaceable(element)
             else -> throw SerializeError("Unknown element type: $element")
         }
-    }
 
-    private fun serializePlaceable(placeable: Placeable): CharSequence {
-        return when (val expr = placeable.expression) {
+    private fun serializePlaceable(placeable: Placeable): CharSequence =
+        when (val expr = placeable.expression) {
             is Placeable -> "{${serializePlaceable(expr)}}"
             // Special-case select expression to control the whitespace around the
             // opening and the closing brace.
@@ -158,7 +149,6 @@ class FluentSerializer(private val withJunk: Boolean = false) {
             is Expression -> "{ ${serializeExpression(expr)} }"
             else -> throw SerializeError("Unknown placeable type")
         }
-    }
 
     private fun serializeExpression(expr: Expression): CharSequence {
         return when (expr) {
@@ -223,16 +213,12 @@ class FluentSerializer(private val withJunk: Boolean = false) {
         }
     }
 
-    private fun serializeNamedArgument(arg: NamedArgument): CharSequence {
-        val value = serializeExpression(arg.value)
-        return "${arg.name.name}: $value"
-    }
+    private fun serializeNamedArgument(arg: NamedArgument) = "${arg.name.name}: ${serializeExpression(arg.value)}"
 
-    private fun serializeVariantKey(key: VariantKey): CharSequence {
-        return when (key) {
+    private fun serializeVariantKey(key: VariantKey) =
+        when (key) {
             is Identifier -> key.name
             is NumberLiteral -> key.value
             else -> throw SerializeError("Unknown variant key type: $key")
         }
-    }
 }
