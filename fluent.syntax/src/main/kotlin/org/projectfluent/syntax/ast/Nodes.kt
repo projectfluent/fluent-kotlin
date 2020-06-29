@@ -57,8 +57,7 @@ abstract class BaseNode {
 /**
  * Base class for AST nodes which can have Spans.
  */
-abstract class SyntaxNode : BaseNode() {
-    var span: Span? = null
+abstract class SyntaxNode(var span: Span? = null) : BaseNode() {
     fun addSpan(start: Int, end: Int) {
         this.span = Span(start, end)
     }
@@ -129,10 +128,7 @@ class SelectExpression(var selector: Expression, var variants: MutableList<Varia
 
 interface CallArgument
 
-class CallArguments : SyntaxNode() {
-    val positional: MutableList<Expression> = mutableListOf()
-    val named: MutableList<NamedArgument> = mutableListOf()
-}
+class CallArguments(val positional: MutableList<Expression> = mutableListOf(), val named: MutableList<NamedArgument> = mutableListOf()) : SyntaxNode()
 
 class Attribute(var id: Identifier, var value: Pattern) : SyntaxNode()
 
@@ -152,12 +148,7 @@ class GroupComment(content: String) : BaseComment(content)
 
 class ResourceComment(content: String) : BaseComment(content)
 
-class Junk(val content: String) : TopLevel() {
-    val annotations: MutableList<Annotation> = mutableListOf()
-    fun addAnnotation(annotation: Annotation) {
-        this.annotations.add(annotation)
-    }
-}
+class Junk(val content: String, val annotations: MutableList<Annotation> = mutableListOf()) : TopLevel()
 
 /**
  * Represents top-level whitespace
@@ -168,6 +159,5 @@ class Whitespace(val content: String) : TopLevel()
 
 class Span(var start: Int, var end: Int) : BaseNode()
 
-class Annotation(var code: String, var message: String) : SyntaxNode() {
-    val arguments: MutableList<Any> = mutableListOf()
-}
+class Annotation(var code: String, var message: String, val arguments: MutableList<Any>, span: Span? = null) :
+    SyntaxNode(span)

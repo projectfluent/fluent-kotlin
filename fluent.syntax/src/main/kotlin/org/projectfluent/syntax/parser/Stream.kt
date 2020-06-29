@@ -182,11 +182,7 @@ internal class FluentStream(string: String) : ParserStream(string) {
             return false
         }
 
-        val bound = if (level == -1) {
-            2
-        } else {
-            level
-        }
+        val bound = if (level == -1) 2 else level
         for (i in 0..bound) {
             if (this.peek() != '#') {
                 if (level != -1) {
