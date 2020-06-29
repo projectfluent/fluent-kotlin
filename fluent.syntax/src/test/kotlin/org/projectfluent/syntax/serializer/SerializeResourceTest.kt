@@ -4,17 +4,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectfluent.syntax.ast.Resource
 import org.projectfluent.syntax.parser.FluentParser
+import java.io.ByteArrayOutputStream
 
 class SerializeResourceTest {
     private val parser = FluentParser()
     private val serializer = FluentSerializer()
 
-    private fun parse(input: String): Resource {
-        return this.parser.parse(input)
-    }
-
     private fun pretty(input: String): String {
-        val resource = this.parse(input)
+        val resource = this.parser.parse(input)
         val serialized = this.serializer.serialize(resource)
         return serialized.toString()
     }
@@ -609,5 +606,39 @@ class SerializeResourceTest {
             
             """.trimIndent()
         assertEquals(input, this.pretty(input))
+    }
+
+    @Test
+    fun writesToProvidedStringBuilder() {
+        val input = "foo = Foo"
+        val resource: Resource = parser.parse(input)
+
+        val expected = serializer.serialize(resource)
+        val actual = with(
+            StringBuilder(),
+            {
+                serializer.serialize(resource) { this.append(it) }
+                this.toString()
+            }
+        )
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun writesToProvidedStream() {
+        val input = "foo = Foo"
+        val resource: Resource = parser.parse(input)
+
+        val expected = this.serializer.serialize(resource)
+        val actual = with(
+            ByteArrayOutputStream(),
+            {
+                serializer.serialize(resource) { this.writeBytes(it.toString().toByteArray()) }
+                this.toString()
+            }
+        )
+
+        assertEquals(expected, actual)
     }
 }

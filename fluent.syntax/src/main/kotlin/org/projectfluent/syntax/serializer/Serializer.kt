@@ -2,11 +2,22 @@ package org.projectfluent.syntax.serializer
 
 import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 
-private fun indent(content: CharSequence) = content.split("\n").joinToString("\n    ")
-
 private fun PatternElement.includesLine() = this is TextElement && value.contains("\n")
 
 private fun PatternElement.isSelectExpr() = this is Placeable && expression is SelectExpression
+
+private const val INDENTATION_SPACES = 4
+
+private typealias SerializationResultWriter = (CharSequence) -> Unit
+
+private fun SerializationResultWriter.write(vararg increments: CharSequence) = increments.forEach(this::invoke)
+
+private fun SerializationResultWriter.indented(count: Int = INDENTATION_SPACES): SerializationResultWriter {
+    val spaces = " ".repeat(count)
+    return fun(increment: CharSequence) {
+        this.write(increment.replace("\n".toRegex(), "\n$spaces"))
+    }
+}
 
 /**
  * Serialize Fluent nodes to `CharSequence`.
@@ -14,29 +25,32 @@ private fun PatternElement.isSelectExpr() = this is Placeable && expression is S
  * @property withJunk serialize Junk entries or not.
  */
 class FluentSerializer(private val withJunk: Boolean = false) {
+
     /**
      * Serialize a Resource.
      */
-    fun serialize(resource: Resource): CharSequence =
-        resource.body
-            .mapNotNull {
-                when (it) {
-                    is Entry -> serializeEntry(it)
-                    is Whitespace -> it.content
-                    is Junk -> it.content.takeIf { this.withJunk }
-                    else -> throw SerializeError("Unknown top-level entry type")
-                }
+    fun serialize(resource: Resource): CharSequence = toCharSequence(this::serialize, resource)
+
+    fun serialize(resource: Resource, res: SerializationResultWriter): Unit =
+        resource.body.forEach {
+            when (it) {
+                is Entry -> serializeEntry(it, res)
+                is Whitespace -> res.write(it.content)
+                is Junk -> it.content.takeIf { this.withJunk }?.let { junk -> res.write(junk) }
+                else -> throw SerializeError("Unknown top-level entry type")
             }
-            .joinToString("")
+        }
 
     /**
      * Serialize Message, Term, Whitespace, and Junk.
      */
-    fun serialize(entry: TopLevel): CharSequence =
+    fun serialize(entry: TopLevel): CharSequence = toCharSequence(this::serialize, entry)
+
+    fun serialize(entry: TopLevel, res: SerializationResultWriter): Unit =
         when (entry) {
-            is Entry -> serializeEntry(entry)
-            is Whitespace -> entry.content
-            is Junk -> entry.content
+            is Entry -> serializeEntry(entry, res)
+            is Whitespace -> res.write(entry.content)
+            is Junk -> entry.content.takeIf { this.withJunk }?.let { junk -> res.write(junk) } ?: Unit
             else -> throw SerializeError("Unknown top-level type: $entry")
         }
 
@@ -45,180 +59,191 @@ class FluentSerializer(private val withJunk: Boolean = false) {
      *
      * This is useful to get a string representation of a simple Placeable.
      */
-    fun serialize(expr: Expression): CharSequence = serializeExpression(expr)
+    fun serialize(expr: Expression): CharSequence = toCharSequence(this::serialize, expr)
+
+    fun serialize(expr: Expression, res: SerializationResultWriter): Unit = serializeExpression(expr, res)
 
     /**
      * Serialize a VariantKey.
      *
      * Useful when displaying the options of a SelectExpression.
      */
-    fun serialize(key: VariantKey): CharSequence = serializeVariantKey(key)
+    fun serialize(key: VariantKey): CharSequence = toCharSequence(this::serialize, key)
 
-    private fun serializeEntry(entry: Entry) =
+    fun serialize(key: VariantKey, res: SerializationResultWriter): Unit = serializeVariantKey(key, res)
+
+    private fun serializeEntry(entry: Entry, res: SerializationResultWriter) =
         when (entry) {
-            is Message -> serializeMessage(entry)
-            is Term -> serializeTerm(entry)
-            is Comment -> serializeComment(entry, "#")
-            is GroupComment -> serializeComment(entry, "##")
-            is ResourceComment -> serializeComment(entry, "###")
+            is Message -> serializeMessage(entry, res)
+            is Term -> serializeTerm(entry, res)
+            is Comment -> serializeComment(entry, res, "#")
+            is GroupComment -> serializeComment(entry, res, "##")
+            is ResourceComment -> serializeComment(entry, res, "###")
             else -> throw SerializeError("Unknown entry type: $entry")
         }
 
-    private fun serializeComment(comment: BaseComment, prefix: CharSequence = "#") =
-        comment.content.split("\n")
-            .joinToString(
-                "",
-                transform = {
-                    if (it.isNotEmpty()) {
-                        "$prefix $it\n"
-                    } else {
-                        "$prefix\n"
-                    }
+    private fun serializeComment(
+        comment: BaseComment,
+        res: SerializationResultWriter,
+        prefix: CharSequence = "#"
+    ) =
+        comment.content
+            .split("\n")
+            .forEach {
+                res.write(prefix)
+                if (it.isNotEmpty()) {
+                    res.write(" ", it)
                 }
-            )
+                res.write("\n")
+            }
 
-    private fun serializeMessage(message: Message): CharSequence {
-        val builder = StringBuilder()
-
-        message.comment?.let {
-            builder.append(serializeComment(it))
-        }
-
-        builder.append(message.id.name, " =")
-
-        message.value?.let {
-            builder.append(serializePattern(it))
-        }
-
-        for (attribute in message.attributes) {
-            builder.append(serializeAttribute(attribute))
-        }
-
-        builder.append("\n")
-        return builder
+    private fun serializeMessage(message: Message, res: SerializationResultWriter) {
+        message.comment?.let { serializeComment(it, res) }
+        res.write(message.id.name, " =")
+        message.value?.let { serializePattern(it, res) }
+        message.attributes.forEach { serializeAttribute(it, res) }
+        res.write("\n")
     }
 
-    private fun serializeTerm(term: Term): CharSequence {
-        val builder = StringBuilder()
-
-        term.comment?.let {
-            builder.append(serializeComment(it))
-        }
-
-        builder.append("-" + term.id.name + " =")
-        builder.append(serializePattern(term.value))
-
-        for (attribute in term.attributes) {
-            builder.append(serializeAttribute(attribute))
-        }
-
-        builder.append("\n")
-        return builder
+    private fun serializeTerm(term: Term, res: SerializationResultWriter) {
+        term.comment?.let { serializeComment(it, res) }
+        res.write("-", term.id.name, " =")
+        serializePattern(term.value, res)
+        term.attributes.forEach { serializeAttribute(it, res) }
+        res.write("\n")
     }
 
-    private fun serializeAttribute(attribute: Attribute): CharSequence {
-        val value = indent(serializePattern(attribute.value))
-        return "\n    .${attribute.id.name} =$value"
+    private fun serializeAttribute(attribute: Attribute, res: SerializationResultWriter) {
+        res.indented().write("\n", ".", attribute.id.name, " =")
+        serializePattern(attribute.value, res.indented())
     }
 
-    private fun serializePattern(pattern: Pattern): CharSequence {
+    private fun serializePattern(pattern: Pattern, res: SerializationResultWriter) {
         val startOnLine = pattern.elements.any { it.isSelectExpr() || it.includesLine() }
-        val elements = pattern.elements.map(::serializeElement)
-        val content = indent(elements.joinToString(""))
-
-        return if (startOnLine) {
-            "\n    $content"
+        if (startOnLine) {
+            res.indented().write("\n")
         } else {
-            " $content"
+            res.write(" ")
         }
+        pattern.elements.forEach { serializeElement(it, res.indented()) }
     }
 
-    private fun serializeElement(element: PatternElement) =
+    private fun serializeElement(element: PatternElement, res: SerializationResultWriter) =
         when (element) {
-            is TextElement -> element.value
-            is Placeable -> serializePlaceable(element)
+            is TextElement -> res.write(element.value)
+            is Placeable -> serializePlaceable(element, res)
             else -> throw SerializeError("Unknown element type: $element")
         }
 
-    private fun serializePlaceable(placeable: Placeable): CharSequence =
+    private fun serializePlaceable(placeable: Placeable, res: SerializationResultWriter): Unit =
         when (val expr = placeable.expression) {
-            is Placeable -> "{${serializePlaceable(expr)}}"
+            is Placeable -> {
+                res.write("{")
+                serializePlaceable(expr, res)
+                res.write("}")
+            }
             // Special-case select expression to control the whitespace around the
             // opening and the closing brace.
-            is SelectExpression -> "{ ${serializeExpression(expr)}}"
-            is Expression -> "{ ${serializeExpression(expr)} }"
+            is SelectExpression -> {
+                res.write("{ ")
+                serializeExpression(expr, res)
+                res.write("}")
+            }
+            is Expression -> {
+                res.write("{ ")
+                serializeExpression(expr, res)
+                res.write(" }")
+            }
             else -> throw SerializeError("Unknown placeable type")
         }
 
-    private fun serializeExpression(expr: Expression): CharSequence {
-        return when (expr) {
-            is StringLiteral -> "\"${expr.value}\""
-            is NumberLiteral -> expr.value
-            is VariableReference -> "$${expr.id.name}"
+    private fun serializeExpression(expr: Expression, res: SerializationResultWriter) {
+        when (expr) {
+            is StringLiteral -> res.write("\"", expr.value, "\"")
+            is NumberLiteral -> res.write(expr.value)
+            is VariableReference -> res.write("$", expr.id.name)
             is TermReference -> {
-                val builder = StringBuilder()
-                builder.append("-", expr.id.name)
-                expr.attribute?.let {
-                    builder.append(".", it.name)
-                }
-                expr.arguments?.let {
-                    builder.append(serializeCallArguments(it))
-                }
-                builder
+                res.write("-", expr.id.name)
+                expr.attribute?.let { res.write(".", it.name) }
+                expr.arguments?.let { serializeCallArguments(it, res) }
             }
             is MessageReference -> {
-                val builder = StringBuilder()
-                builder.append(expr.id.name)
-                expr.attribute?.let {
-                    builder.append(".", it.name)
-                }
-                builder
+                res.write(expr.id.name)
+                expr.attribute?.let { res.write(".", it.name) }
             }
-            is FunctionReference -> "${expr.id.name}${serializeCallArguments(expr.arguments)}"
+            is FunctionReference -> {
+                res.write(expr.id.name)
+                serializeCallArguments(expr.arguments, res)
+            }
             is SelectExpression -> {
-                val builder = StringBuilder()
-                builder.append(serializeExpression(expr.selector), " ->")
-                expr.variants.forEach { builder.append(serializeVariant(it)) }
-                builder.append("\n")
+                serializeExpression(expr.selector, res)
+                res.write(" ->")
+                expr.variants.forEach { serializeVariant(it, res) }
+                res.write("\n")
             }
             else -> throw SerializeError("Unknown expression type: $expr")
         }
     }
 
-    private fun serializeVariant(variant: Variant): CharSequence {
-        val key = serializeVariantKey(variant.key)
-        val value = indent(serializePattern(variant.value))
-
-        return if (variant.default) {
-            "\n   *[$key]$value"
+    private fun serializeVariant(variant: Variant, res: SerializationResultWriter) {
+        val marker = if (variant.default) {
+            "*"
         } else {
-            "\n    [$key]$value"
+            ""
         }
+        res.indented(INDENTATION_SPACES - marker.length).write("\n")
+        res.write(marker, "[")
+        serializeVariantKey(variant.key, res)
+        res.write("]")
+        serializePattern(variant.value, res.indented())
     }
 
-    private fun serializeCallArguments(expr: CallArguments): CharSequence {
-        val positional = expr.positional.joinToString(", ", transform = ::serializeExpression)
-        val named = expr.named.joinToString(", ", transform = ::serializeNamedArgument)
+    private fun serializeCallArguments(expr: CallArguments, res: SerializationResultWriter) {
         val hasPositional = expr.positional.size > 0
         val hasNamed = expr.named.size > 0
 
-        return if (hasPositional && hasNamed) {
-            "($positional, $named)"
-        } else if (hasPositional) {
-            "($positional)"
-        } else if (hasNamed) {
-            "($named)"
-        } else {
-            "()"
+        res.write("(")
+        commaSeparated(this::serializeExpression, expr.positional, res)
+        if (hasPositional && hasNamed) {
+            res.write(", ")
         }
+        commaSeparated(this::serializeNamedArgument, expr.named, res)
+        res.write(")")
     }
 
-    private fun serializeNamedArgument(arg: NamedArgument) = "${arg.name.name}: ${serializeExpression(arg.value)}"
+    private fun serializeNamedArgument(arg: NamedArgument, res: SerializationResultWriter) {
+        res.write(arg.name.name, ": ")
+        serializeExpression(arg.value, res)
+    }
 
-    private fun serializeVariantKey(key: VariantKey) =
+    private fun serializeVariantKey(key: VariantKey, res: SerializationResultWriter) =
         when (key) {
-            is Identifier -> key.name
-            is NumberLiteral -> key.value
+            is Identifier -> res.write(key.name)
+            is NumberLiteral -> res.write(key.value)
             else -> throw SerializeError("Unknown variant key type: $key")
         }
+
+    private companion object {
+        private fun <T> toCharSequence(serializer: (T, SerializationResultWriter) -> Unit, node: T): CharSequence =
+            with(
+                StringBuilder(),
+                {
+                    serializer.invoke(node) { this.append(it) }
+                    this.toString()
+                }
+            )
+
+        private fun <T> commaSeparated(
+            serializer: (T, SerializationResultWriter) -> Unit,
+            nodes: List<T>,
+            res: SerializationResultWriter
+        ) {
+            nodes.forEachIndexed { i, it ->
+                serializer.invoke(it, res)
+                if (i != nodes.lastIndex) {
+                    res.write(", ")
+                }
+            }
+        }
+    }
 }
