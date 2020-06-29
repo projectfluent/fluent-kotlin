@@ -1,49 +1,55 @@
 package org.projectfluent.syntax.parser
 
-internal open class ParserStream(var string: String) {
+import kotlin.math.max
+import kotlin.math.min
+
+internal const val EOL = '\n'
+internal val EOF: Char? = null
+private const val SPECIAL_LINE_START_CHARS = "}.[*"
+
+internal open class ParserStream(val string: String) {
     var index: Int = 0
     var peekOffset: Int = 0
+
+    private fun cursorAtCRLF(offset: Int): Boolean {
+        val maxIndex = max(string.length - 1, 0)
+        val nextTwoChars = string.subSequence(min(offset, maxIndex), min(offset + 2, maxIndex))
+        return nextTwoChars.toString() == "\r\n"
+    }
 
     private fun charAt(offset: Int): Char? {
         // When the cursor is at CRLF, return LF but don't move the cursor.
         // The cursor still points to the EOL position, which in this case is the
         // beginning of the compound CRLF sequence. This ensures slices of
         // [inclusive, exclusive) continue to work properly.
-        return if (this.string.getOrNull(offset) == '\r' && this.string.getOrNull(offset + 1) == '\n') {
-            '\n'
+        return if (cursorAtCRLF(offset)) {
+            EOL
         } else {
             this.string.getOrNull(offset)
         }
     }
 
-    fun currentChar(): Char? {
-        return this.charAt(this.index)
-    }
+    fun currentChar() = charAt(index)
 
-    fun currentPeek(): Char? {
-        return this.charAt(this.index + this.peekOffset)
-    }
+    fun currentPeek() = charAt(index + peekOffset)
 
     fun next(): Char? {
-        this.peekOffset = 0
-        if (this.index >= this.string.length) return null
-        // Skip over the CRLF as if it was a single character.
-        if (this.string[this.index] == '\r' && this.string.getOrNull(this.index + 1) == '\n') {
-            this.index++
+        resetPeek()
+        index += if (cursorAtCRLF(index)) { // Skip over the CRLF as if it was a single character.
+            2
+        } else {
+            1
         }
-        this.index++
-        return this.string.getOrNull(this.index)
+        return currentChar()
     }
 
     fun peek(): Char? {
-        // Skip over the CRLF as if it was a single character.
-        if (this.string.getOrNull(this.index + this.peekOffset) == '\r' &&
-            this.string.getOrNull(this.index + this.peekOffset + 1) == '\n'
-        ) {
-            this.peekOffset++
+        peekOffset += if (cursorAtCRLF(index + peekOffset)) { // Skip over the CRLF as if it was a single character.
+            2
+        } else {
+            1
         }
-        this.peekOffset++
-        return this.string.getOrNull(this.index + peekOffset)
+        return currentPeek()
     }
 
     fun resetPeek(offset: Int = 0) {
@@ -52,13 +58,9 @@ internal open class ParserStream(var string: String) {
 
     fun skipToPeek() {
         this.index += this.peekOffset
-        this.peekOffset = 0
+        resetPeek()
     }
 }
-
-internal const val EOL = '\n'
-internal val EOF: Char? = null
-internal const val SPECIAL_LINE_START_CHARS = "}.[*"
 
 internal class FluentStream(string: String) : ParserStream(string) {
 
@@ -294,7 +296,7 @@ internal class FluentStream(string: String) : ParserStream(string) {
     }
 
     fun takeIDChar(): Char? {
-        val closure = fun (ch: Char): Boolean {
+        val closure = fun(ch: Char): Boolean {
             val cc = ch.toInt()
             return (
                 (cc in 97..122) || // a-z
@@ -308,7 +310,7 @@ internal class FluentStream(string: String) : ParserStream(string) {
     }
 
     fun takeDigit(): Char? {
-        val closure = fun (ch: Char): Boolean {
+        val closure = fun(ch: Char): Boolean {
             val cc = ch.toInt()
             return (cc in 48..57) // 0-9
         }
@@ -317,7 +319,7 @@ internal class FluentStream(string: String) : ParserStream(string) {
     }
 
     fun takeHexDigit(): Char? {
-        val closure = fun (ch: Char): Boolean {
+        val closure = fun(ch: Char): Boolean {
             val cc = ch.toInt()
             return (cc in 48..57) || // 0-9
                 (cc in 65..70) || // A-F
