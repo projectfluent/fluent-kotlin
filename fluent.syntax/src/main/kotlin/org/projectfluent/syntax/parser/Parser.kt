@@ -600,17 +600,19 @@ class FluentParser(private val withSpans: Boolean = false) {
             }
 
             when (val arg = this.getCallArgument(ps)) {
-                is NamedArgument -> if (arg.name.name !in argumentNames) {
-                    named.add(arg)
-                    argumentNames.add(arg.name.name)
-                } else {
-                    throw ParseError("E0022")
-                }
-                is Expression -> if (argumentNames.isEmpty()) {
-                    positional.add(arg)
-                } else {
-                    throw ParseError("E0021")
-                }
+                is NamedArgument ->
+                    if (arg.name.name !in argumentNames) {
+                        named.add(arg)
+                        argumentNames.add(arg.name.name)
+                    } else {
+                        throw ParseError("E0022")
+                    }
+                is Expression ->
+                    if (argumentNames.isEmpty()) {
+                        positional.add(arg)
+                    } else {
+                        throw ParseError("E0021")
+                    }
             }
 
             ps.skipBlank()
