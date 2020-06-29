@@ -4,60 +4,58 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectfluent.syntax.ast.Resource
 import org.projectfluent.syntax.parser.FluentParser
+import java.io.ByteArrayOutputStream
 
-class SerializeResourceTest {
+class FluentParserAndSerializerTest {
+
     private val parser = FluentParser()
     private val serializer = FluentSerializer()
 
-    private fun parse(input: String): Resource {
-        return this.parser.parse(input)
-    }
-
-    private fun pretty(input: String): String {
-        val resource = this.parse(input)
-        val serialized = this.serializer.serialize(resource)
+    private fun parseAndSerialize(input: String): String {
+        val resource = parser.parse(input)
+        val serialized = serializer.serialize(resource)
         return serialized.toString()
     }
 
     @Test
-    fun simple_message_without_eol() {
+    fun simpleMessageWithoutEol() {
         val input = "foo = Foo"
-        assertEquals("foo = Foo\n", this.pretty(input))
+        assertEquals("foo = Foo\n", parseAndSerialize(input))
     }
 
     @Test
-    fun simple_message() {
+    fun simpleMessage() {
         val input =
             """
             foo = Foo
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun simple_term() {
+    fun simpleTerm() {
         val input =
             """
             -foo = Foo
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun two_simple_messages() {
+    fun twoSimpleMessages() {
         val input =
             """
             foo = Foo
             bar = Bar
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun block_multiline_message() {
+    fun blockMultilineMessage() {
         val input =
             """
             foo =
@@ -65,11 +63,11 @@ class SerializeResourceTest {
                 Bar
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun inline_multiline_message() {
+    fun inlineMultilineMessage() {
         val input =
             """
             foo = Foo
@@ -83,71 +81,71 @@ class SerializeResourceTest {
                 Bar
             
             """.trimIndent()
-        assertEquals(expected, this.pretty(input))
+        assertEquals(expected, parseAndSerialize(input))
     }
 
     @Test
-    fun message_reference() {
+    fun messageReference() {
         val input =
             """
             foo = Foo { bar }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun message_attribute_reference() {
+    fun messageAttributeReference() {
         val input =
             """
             foo = Foo { bar.baz }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun term_reference() {
+    fun termReference() {
         val input =
             """
             foo = Foo { -bar }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun variable_reference() {
+    fun variableReference() {
         val input =
             """
             foo = Foo { ${'$'}bar }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun number_literal() {
+    fun numberLiteral() {
         val input =
             """
             foo = Foo { 1 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun string_literal() {
+    fun stringLiteral() {
         val input =
             """
             foo = Foo { "bar" }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun resource_comment() {
+    fun resourceComment() {
         val input =
             """
             ### A multiline
@@ -156,11 +154,11 @@ class SerializeResourceTest {
             foo = Foo
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun group_comment() {
+    fun groupComment() {
         val input =
             """
             foo = Foo
@@ -173,11 +171,11 @@ class SerializeResourceTest {
             bar = Bar
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun message_comment() {
+    fun messageComment() {
         val input =
             """
             # A multiline
@@ -185,11 +183,11 @@ class SerializeResourceTest {
             foo = Foo
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun standalone_comment() {
+    fun standaloneComment() {
         val input =
             """
             foo = Foo
@@ -199,11 +197,11 @@ class SerializeResourceTest {
             bar = Bar
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun multiline_with_placeable() {
+    fun multilineWithPlaceable() {
         val input =
             """
             foo =
@@ -211,7 +209,7 @@ class SerializeResourceTest {
                 Baz
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
@@ -222,11 +220,11 @@ class SerializeResourceTest {
                 .attr = Foo Attr
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun multiline_attribute() {
+    fun multilineAttribute() {
         val input =
             """
             foo =
@@ -235,11 +233,11 @@ class SerializeResourceTest {
                     Continued
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun two_attribute() {
+    fun twoAttribute() {
         val input =
             """
             foo =
@@ -247,11 +245,11 @@ class SerializeResourceTest {
                 .attr-b = Foo Attr B
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun value_and_attributes() {
+    fun valueAndAttributes() {
         val input =
             """
             foo = Foo Value
@@ -259,11 +257,11 @@ class SerializeResourceTest {
                 .attr-b = Foo Attr B
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun multiline_value_and_attributes() {
+    fun multilineValueAndAttributes() {
         val input =
             """
             foo =
@@ -273,11 +271,11 @@ class SerializeResourceTest {
                 .attr-b = Foo Attr B
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun select_expression() {
+    fun selectExpression() {
         val input =
             """
             foo =
@@ -287,11 +285,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun multiline_variant() {
+    fun multilineVariant() {
         val input =
             """
             foo =
@@ -302,11 +300,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun multiline_variant_with_first_line_inline() {
+    fun multilineVariantWithFirstLineInline() {
         val input =
             """
             foo =
@@ -326,11 +324,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(expected, this.pretty(input))
+        assertEquals(expected, parseAndSerialize(input))
     }
 
     @Test
-    fun variant_key_number() {
+    fun variantKeyNumber() {
         val input =
             """
             foo =
@@ -339,11 +337,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun select_expression_in_block_pattern() {
+    fun selectExpressionInBlockPattern() {
         val input =
             """
             foo =
@@ -353,11 +351,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun select_expression_in_inline_pattern() {
+    fun selectExpressionInInlinePattern() {
         val input =
             """
             foo = Foo { ${'$'}sel ->
@@ -375,11 +373,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(expected, this.pretty(input))
+        assertEquals(expected, parseAndSerialize(input))
     }
 
     @Test
-    fun select_expression_in_multiline_pattern() {
+    fun selectExpressionInMultilinePattern() {
         val input =
             """
             foo =
@@ -390,11 +388,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun nested_select_expression() {
+    fun nestedSelectExpression() {
         val input =
             """
             foo =
@@ -406,11 +404,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun selector_variable_reference() {
+    fun selectorVariableReference() {
         val input =
             """
             foo =
@@ -419,11 +417,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun selector_number_literal() {
+    fun selectorNumberLiteral() {
         val input =
             """
             foo =
@@ -432,11 +430,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun selector_string_literal() {
+    fun selectorStringLiteral() {
         val input =
             """
             foo =
@@ -445,11 +443,11 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun selector_term_attribute_reference() {
+    fun selectorTermAttributeReference() {
         val input =
             """
             foo =
@@ -458,156 +456,190 @@ class SerializeResourceTest {
                 }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression() {
+    fun callExpression() {
         val input =
             """
             foo = { FOO() }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_string_literal() {
+    fun callExpressionWithStringLiteral() {
         val input =
             """
             foo = { FOO("bar") }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_number_literal() {
+    fun callExpressionWithNumberLiteral() {
         val input =
             """
             foo = { FOO(1) }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_message_reference() {
+    fun callExpressionWithMessageReference() {
         val input =
             """
             foo = { FOO(bar) }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_variable_reference() {
+    fun callExpressionWithVariableReference() {
         val input =
             """
             foo = { FOO(${'$'}bar) }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_named_number_literal() {
+    fun callExpressionWithNamedNumberLiteral() {
         val input =
             """
             foo = { FOO(bar: 1) }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_named_string_literal() {
+    fun callExpressionWithNamedStringLiteral() {
         val input =
             """
             foo = { FOO(bar: "bar") }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_two_positional_arguments() {
+    fun callExpressionWithTwoPositionalArguments() {
         val input =
             """
             foo = { FOO(bar, baz) }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_two_named_arguments() {
+    fun callExpressionWithTwoNamedArguments() {
         val input =
             """
             foo = { FOO(bar: "bar", baz: "baz") }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun call_expression_with_positional_and_named_arguments() {
+    fun callExpressionWithPositionalAndNamedArguments() {
         val input =
             """
             foo = { FOO(bar, 1, baz: "baz") }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun term_reference_call() {
+    fun termReferenceCall() {
         val input =
             """
             foo = { -term() }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun nested_placeable() {
+    fun nestedPlaceable() {
         val input =
             """
             foo = {{ FOO() }}
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun backslash_in_text_element() {
+    fun backslashInTextElement() {
         val input =
             """
             foo = \{ placeable }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun escaped_special_char_in_string_literal() {
+    fun escapedSpecialCharInStringLiteral() {
         val input =
             """
             foo = { "Escaped \" quote" }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
     }
 
     @Test
-    fun unicode_escape_sequence() {
+    fun unicodeEscapeSequence() {
         val input =
             """
             foo = { "\u0065" }
             
             """.trimIndent()
-        assertEquals(input, this.pretty(input))
+        assertEquals(input, parseAndSerialize(input))
+    }
+
+    @Test
+    fun writesToProvidedStringBuilder() {
+        val input = "foo = Foo"
+        val resource: Resource = parser.parse(input)
+
+        val expected = serializer.serialize(resource)
+        val actual = with(
+            StringBuilder(),
+            {
+                serializer.serialize(resource) { this.append(it) }
+                this.toString()
+            }
+        )
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun writesToProvidedStream() {
+        val input = "foo = Foo"
+        val resource: Resource = parser.parse(input)
+
+        val expected = serializer.serialize(resource)
+        val actual = with(
+            ByteArrayOutputStream(),
+            {
+                serializer.serialize(resource) { this.writeBytes(it.toString().toByteArray()) }
+                this.toString()
+            }
+        )
+
+        assertEquals(expected, actual)
     }
 }
