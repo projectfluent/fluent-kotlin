@@ -1,9 +1,9 @@
-package org.projectfluent.syntax.antipattern
+package org.projectfluent.syntax.smart
 
 import org.projectfluent.syntax.ast.*
 import java.lang.Exception
 
-class AntiPattern(vararg elements: PatternElement) : SyntaxNode() {
+class SmartPattern(vararg elements: PatternElement) : SyntaxNode() {
     val elements: MutableList<PatternElement> = mutableListOf()
 
     init {
@@ -11,8 +11,8 @@ class AntiPattern(vararg elements: PatternElement) : SyntaxNode() {
     }
 }
 
-fun toAntiPattern(pattern: Pattern): AntiPattern {
-    val result = AntiPattern()
+fun toSmartPattern(pattern: Pattern): SmartPattern {
+    val result = SmartPattern()
     for (elem in pattern.elements) {
         when (elem) {
             is TextElement -> {}
@@ -21,7 +21,7 @@ fun toAntiPattern(pattern: Pattern): AntiPattern {
     return result
 }
 
-fun antiElements(pattern: Pattern) = sequence {
+fun smartElements(pattern: Pattern) = sequence {
     var lastText: TextElement? = null
     pattern.elements.forEach { element ->
         when (element) {

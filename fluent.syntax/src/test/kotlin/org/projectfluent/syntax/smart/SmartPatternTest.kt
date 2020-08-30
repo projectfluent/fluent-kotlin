@@ -1,4 +1,4 @@
-package org.projectfluent.syntax.antipattern
+package org.projectfluent.syntax.smart
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -7,7 +7,7 @@ import org.projectfluent.syntax.ast.Placeable
 import org.projectfluent.syntax.ast.StringLiteral
 import org.projectfluent.syntax.ast.TextElement
 
-internal class AntiPatternTest {
+internal class SmartPatternTest {
 
     @Test
     fun antiElements() {
@@ -18,8 +18,8 @@ internal class AntiPatternTest {
                 TextElement("Hi")
             )
         )
-        var anti = antiElements(pattern).toList()
-        assertEquals(pattern.elements, anti)
+        var smarts = smartElements(pattern).toList()
+        assertEquals(pattern.elements, smarts)
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
@@ -28,8 +28,8 @@ internal class AntiPatternTest {
                 Placeable(expression = StringLiteral("""\""""))
             )
         )
-        anti = antiElements(pattern).toList()
-        assertEquals(listOf(TextElement("""\ """")), anti)
+        smarts = smartElements(pattern).toList()
+        assertEquals(listOf(TextElement("""\ """")), smarts)
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
@@ -38,7 +38,7 @@ internal class AntiPatternTest {
                 TextElement("there")
             )
         )
-        anti = antiElements(pattern).toList()
-        assertEquals(listOf(TextElement("Hi, there")), anti)
+        smarts = smartElements(pattern).toList()
+        assertEquals(listOf(TextElement("Hi, there")), smarts)
     }
 }
