@@ -13,10 +13,8 @@ class SmartPattern(vararg elements: PatternElement) : SyntaxNode() {
 
 fun toSmartPattern(pattern: Pattern): SmartPattern {
     val result = SmartPattern()
-    for (elem in pattern.elements) {
-        when (elem) {
-            is TextElement -> {}
-        }
+    for (elem in smartElements(pattern)) {
+        result.elements += elem
     }
     return result
 }
@@ -43,16 +41,11 @@ fun smartElements(pattern: Pattern) = sequence {
                     }
                     is StringLiteral -> {
                         var content = expression.value
-                        if ('{' in content) {
-                            lastText?.let { yield(it) }.also { lastText = null }
-                            yield(element)
-                        } else {
-                            content = special.replace(content) { m -> unescape(m) }
-                            if (lastText == null) {
-                                lastText = TextElement("")
-                            }
-                            lastText?.let { it.value += content }
+                        content = special.replace(content) { m -> unescape(m) }
+                        if (lastText == null) {
+                            lastText = TextElement("")
                         }
+                        lastText?.let { it.value += content }
                     }
                     is SelectExpression -> {
                         throw Exception("Bad Pattern content for AntiPattern")
