@@ -10,7 +10,7 @@ import org.projectfluent.syntax.ast.TextElement
 internal class SmartPatternTest {
 
     @Test
-    fun antiElements() {
+    fun smartElements() {
         val pattern = Pattern()
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -20,6 +20,7 @@ internal class SmartPatternTest {
         )
         var smarts = smartElements(pattern).toList()
         assertEquals(pattern.elements, smarts)
+
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
@@ -30,6 +31,7 @@ internal class SmartPatternTest {
         )
         smarts = smartElements(pattern).toList()
         assertEquals(listOf(TextElement("""\ """")), smarts)
+
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
@@ -40,5 +42,27 @@ internal class SmartPatternTest {
         )
         smarts = smartElements(pattern).toList()
         assertEquals(listOf(TextElement("Hi, there")), smarts)
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+                arrayOf(
+                        TextElement("Hi, "),
+                        Placeable(expression = StringLiteral("""{""")),
+                        TextElement(" there")
+                )
+        )
+        smarts = smartElements(pattern).toList()
+        assertEquals(listOf(TextElement("Hi, { there")), smarts)
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+                arrayOf(
+                        TextElement("Foo\n"),
+                        Placeable(expression = StringLiteral(""".""")),
+                        TextElement("bar")
+                )
+        )
+        smarts = smartElements(pattern).toList()
+        assertEquals(listOf(TextElement("Foo\n.bar")), smarts)
     }
 }
