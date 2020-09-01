@@ -91,12 +91,13 @@ internal class SmartPatternTest {
                 listOf(
                         TextElement("Foo "),
                         Placeable(
-                                expression = SmartSelect(
+                                expression = SelectExpression(
                                         NumberLiteral("1"),
                                         mutableListOf(
-                                                SmartVariant(
-                                                        "other",
-                                                        SmartPattern(TextElement("bar {-_-}"))
+                                                Variant(
+                                                        Identifier("other"),
+                                                        SmartPattern(TextElement("bar {-_-}")),
+                                                        true
                                                 )
                                         )
                                 )
