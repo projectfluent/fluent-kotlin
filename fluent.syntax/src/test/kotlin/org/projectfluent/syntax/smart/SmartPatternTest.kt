@@ -2,10 +2,7 @@ package org.projectfluent.syntax.smart
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.projectfluent.syntax.ast.Pattern
-import org.projectfluent.syntax.ast.Placeable
-import org.projectfluent.syntax.ast.StringLiteral
-import org.projectfluent.syntax.ast.TextElement
+import org.projectfluent.syntax.ast.*
 
 internal class SmartPatternTest {
 
@@ -64,5 +61,50 @@ internal class SmartPatternTest {
         )
         smarts = smartElements(pattern).toList()
         assertEquals(listOf(TextElement("Foo\n.bar")), smarts)
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+                arrayOf(
+                        TextElement("Foo "),
+                        Placeable(
+                                expression = SelectExpression(
+                                        NumberLiteral("1"),
+                                        mutableListOf(
+                                                Variant(
+                                                        Identifier("other"),
+                                                        Pattern(
+                                                                TextElement("bar "),
+                                                                Placeable(
+                                                                    StringLiteral("{-_-}")
+                                                                )
+                                                        ),
+                                                        true
+                                                )
+                                        )
+                                )
+                        ),
+                        TextElement(" baz")
+                )
+        )
+        smarts = smartElements(pattern).toList()
+        assertEquals(
+                listOf(
+                        TextElement("Foo "),
+                        Placeable(
+                                expression = SmartSelect(
+                                        NumberLiteral("1"),
+                                        mutableListOf(
+                                                SmartVariant(
+                                                        "other",
+                                                        SmartPattern(TextElement("bar {-_-}"))
+                                                )
+                                        )
+                                )
+                        ),
+                        TextElement(" baz")
+
+                ),
+                smarts
+        )
     }
 }

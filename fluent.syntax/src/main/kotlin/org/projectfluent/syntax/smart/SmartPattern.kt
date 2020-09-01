@@ -11,10 +11,14 @@ class SmartPattern(vararg elements: PatternElement) : SyntaxNode() {
     }
 }
 
+class SmartSelect(var selector: Expression, var variants: MutableList<SmartVariant>) : InsidePlaceable, SyntaxNode()
+
+class SmartVariant(var key: String, var value: SmartPattern) : SyntaxNode()
+
 fun toSmartPattern(pattern: Pattern): SmartPattern {
     val result = SmartPattern()
     for (elem in smartElements(pattern)) {
-        result.elements += elem
+        result.elements.add(elem)
     }
     return result
 }
@@ -48,7 +52,25 @@ fun smartElements(pattern: Pattern) = sequence {
                         lastText?.let { it.value += content }
                     }
                     is SelectExpression -> {
-                        throw Exception("Bad Pattern content for AntiPattern")
+                        val smartVariants: MutableList<SmartVariant> = mutableListOf()
+                        for (variant in expression.variants) {
+                            val origKey = variant.key
+                            val key = when (origKey) {
+                                is NumberLiteral -> origKey.value.toString()
+                                is Identifier -> origKey.name
+                                else -> throw Exception("Unsupported variant key.")
+                            }
+                            val smartVariant = SmartVariant(key, toSmartPattern(variant.value))
+                            smartVariants.add(smartVariant)
+                        }
+                        val smartSelect = SmartSelect(expression.selector, smartVariants)
+                        val placeable = Placeable(smartSelect)
+
+                        lastText?.let {
+                            yield(it)
+                            lastText = null
+                        }
+                        yield(placeable)
                     }
                     else -> {
                         lastText?.let {
