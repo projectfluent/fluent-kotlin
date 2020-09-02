@@ -92,7 +92,7 @@ class Term(var id: Identifier, var value: Pattern) : Entry() {
     var comment: Comment? = null
 }
 
-open class Pattern(vararg elements: PatternElement) : SyntaxNode() {
+class Pattern(vararg elements: PatternElement) : SyntaxNode() {
     val elements: MutableList<PatternElement> = mutableListOf()
 
     init {
