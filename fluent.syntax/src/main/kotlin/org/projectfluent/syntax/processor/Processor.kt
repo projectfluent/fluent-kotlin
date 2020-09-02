@@ -55,13 +55,13 @@ class Processor {
                             lastText?.let { it.value += content }
                         }
                         is SelectExpression -> {
-                            val smartVariants: MutableList<Variant> = mutableListOf()
+                            val processedVariants: MutableList<Variant> = mutableListOf()
                             for (variant in expression.variants) {
-                                val smartVariant = Variant(variant.key, unescapeLiteralsToText(variant.value), variant.default)
-                                smartVariants.add(smartVariant)
+                                val processedVariant = Variant(variant.key, unescapeLiteralsToText(variant.value), variant.default)
+                                processedVariants.add(processedVariant)
                             }
-                            val smartSelect = SelectExpression(expression.selector, smartVariants)
-                            val placeable = Placeable(smartSelect)
+                            val processedSelect = SelectExpression(expression.selector, processedVariants)
+                            val placeable = Placeable(processedSelect)
 
                             lastText?.let {
                                 yield(it)
