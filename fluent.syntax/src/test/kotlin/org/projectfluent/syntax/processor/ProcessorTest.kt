@@ -1,13 +1,15 @@
-package org.projectfluent.syntax.smart
+package org.projectfluent.syntax.processor
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectfluent.syntax.ast.*
 
-internal class SmartPatternTest {
+internal class ProcessorTest {
 
     @Test
-    fun smartElements() {
+    fun toProcessedPattern() {
+        val processor = Processor()
+
         val pattern = Pattern()
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -15,8 +17,7 @@ internal class SmartPatternTest {
                         TextElement("Hi")
                 )
         )
-        var smarts = smartElements(pattern).toList()
-        assertEquals(pattern.elements, smarts)
+        assertEquals(pattern, processor.toProcessedPattern(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -26,8 +27,10 @@ internal class SmartPatternTest {
                         Placeable(expression = StringLiteral("""\""""))
                 )
         )
-        smarts = smartElements(pattern).toList()
-        assertEquals(listOf(TextElement("""\ """")), smarts)
+        assertEquals(
+                Pattern(TextElement("""\ """")),
+                processor.toProcessedPattern(pattern)
+        )
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -37,8 +40,10 @@ internal class SmartPatternTest {
                         TextElement("there")
                 )
         )
-        smarts = smartElements(pattern).toList()
-        assertEquals(listOf(TextElement("Hi, there")), smarts)
+        assertEquals(
+                Pattern(TextElement("Hi, there")),
+                processor.toProcessedPattern(pattern)
+        )
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -48,8 +53,10 @@ internal class SmartPatternTest {
                         TextElement(" there")
                 )
         )
-        smarts = smartElements(pattern).toList()
-        assertEquals(listOf(TextElement("Hi, { there")), smarts)
+        assertEquals(
+                Pattern(TextElement("Hi, { there")),
+                processor.toProcessedPattern(pattern)
+        )
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -59,8 +66,10 @@ internal class SmartPatternTest {
                         TextElement("bar")
                 )
         )
-        smarts = smartElements(pattern).toList()
-        assertEquals(listOf(TextElement("Foo\n.bar")), smarts)
+        assertEquals(
+                Pattern(TextElement("Foo\n.bar")),
+                processor.toProcessedPattern(pattern)
+        )
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -86,9 +95,8 @@ internal class SmartPatternTest {
                         TextElement(" baz")
                 )
         )
-        smarts = smartElements(pattern).toList()
         assertEquals(
-                listOf(
+                Pattern(
                         TextElement("Foo "),
                         Placeable(
                                 expression = SelectExpression(
@@ -96,7 +104,7 @@ internal class SmartPatternTest {
                                         mutableListOf(
                                                 Variant(
                                                         Identifier("other"),
-                                                        SmartPattern(TextElement("bar {-_-}")),
+                                                        Pattern(TextElement("bar {-_-}")),
                                                         true
                                                 )
                                         )
@@ -105,12 +113,14 @@ internal class SmartPatternTest {
                         TextElement(" baz")
 
                 ),
-                smarts
+                processor.toProcessedPattern(pattern)
         )
     }
 
     @Test
     fun toRawPattern() {
+        val processor = Processor()
+
         val pattern = Pattern()
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -118,7 +128,7 @@ internal class SmartPatternTest {
                 TextElement("Hi")
             )
         )
-        assertEquals(pattern, toRawPattern(pattern))
+        assertEquals(pattern, processor.toRawPattern(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -126,7 +136,7 @@ internal class SmartPatternTest {
                     TextElement("""\ """")
             )
         )
-        assertEquals(pattern, toRawPattern(pattern))
+        assertEquals(pattern, processor.toRawPattern(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -135,13 +145,13 @@ internal class SmartPatternTest {
                 )
         )
         assertEquals(
-                listOf(
+                Pattern(
                         TextElement("Hi, "),
                         Placeable(expression = StringLiteral("{")),
                         TextElement("-_-"),
                         Placeable(expression = StringLiteral("}"))
                 ),
-                toRawPattern(pattern).elements
+                processor.toRawPattern(pattern)
         )
 
         pattern.elements.clear()
@@ -150,7 +160,7 @@ internal class SmartPatternTest {
                         TextElement("Foo\nbar")
                 )
         )
-        assertEquals(pattern, toRawPattern(pattern))
+        assertEquals(pattern, processor.toRawPattern(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -159,12 +169,12 @@ internal class SmartPatternTest {
                 )
         )
         assertEquals(
-                listOf(
+                Pattern(
                         TextElement("Foo\n"),
                         Placeable(expression = StringLiteral("*")),
                         TextElement("bar")
                 ),
-                toRawPattern(pattern).elements
+                processor.toRawPattern(pattern)
         )
 
         pattern.elements.clear()
@@ -174,12 +184,12 @@ internal class SmartPatternTest {
                 )
         )
         assertEquals(
-                listOf(
+                Pattern(
                         Placeable(expression = StringLiteral("")),
                         TextElement("\nFoo\nbar    "),
                         Placeable(expression = StringLiteral(""))
                 ),
-                toRawPattern(pattern).elements
+                processor.toRawPattern(pattern)
         )
     }
 }
