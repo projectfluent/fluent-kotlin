@@ -17,7 +17,7 @@ internal class ProcessorTest {
                         TextElement("Hi")
                 )
         )
-        assertEquals(pattern, processor.toProcessedPattern(pattern))
+        assertEquals(pattern, processor.unescapeLiteralsToText(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -29,7 +29,7 @@ internal class ProcessorTest {
         )
         assertEquals(
                 Pattern(TextElement("""\ """")),
-                processor.toProcessedPattern(pattern)
+                processor.unescapeLiteralsToText(pattern)
         )
 
         pattern.elements.clear()
@@ -42,7 +42,7 @@ internal class ProcessorTest {
         )
         assertEquals(
                 Pattern(TextElement("Hi, there")),
-                processor.toProcessedPattern(pattern)
+                processor.unescapeLiteralsToText(pattern)
         )
 
         pattern.elements.clear()
@@ -55,7 +55,7 @@ internal class ProcessorTest {
         )
         assertEquals(
                 Pattern(TextElement("Hi, { there")),
-                processor.toProcessedPattern(pattern)
+                processor.unescapeLiteralsToText(pattern)
         )
 
         pattern.elements.clear()
@@ -68,7 +68,7 @@ internal class ProcessorTest {
         )
         assertEquals(
                 Pattern(TextElement("Foo\n.bar")),
-                processor.toProcessedPattern(pattern)
+                processor.unescapeLiteralsToText(pattern)
         )
 
         pattern.elements.clear()
@@ -113,7 +113,7 @@ internal class ProcessorTest {
                         TextElement(" baz")
 
                 ),
-                processor.toProcessedPattern(pattern)
+                processor.unescapeLiteralsToText(pattern)
         )
     }
 
@@ -128,7 +128,7 @@ internal class ProcessorTest {
                 TextElement("Hi")
             )
         )
-        assertEquals(pattern, processor.toRawPattern(pattern))
+        assertEquals(pattern, processor.escapeTextToLiterals(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -136,7 +136,7 @@ internal class ProcessorTest {
                     TextElement("""\ """")
             )
         )
-        assertEquals(pattern, processor.toRawPattern(pattern))
+        assertEquals(pattern, processor.escapeTextToLiterals(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -151,7 +151,7 @@ internal class ProcessorTest {
                         TextElement("-_-"),
                         Placeable(expression = StringLiteral("}"))
                 ),
-                processor.toRawPattern(pattern)
+                processor.escapeTextToLiterals(pattern)
         )
 
         pattern.elements.clear()
@@ -160,7 +160,7 @@ internal class ProcessorTest {
                         TextElement("Foo\nbar")
                 )
         )
-        assertEquals(pattern, processor.toRawPattern(pattern))
+        assertEquals(pattern, processor.escapeTextToLiterals(pattern))
 
         pattern.elements.clear()
         pattern.elements.addAll(
@@ -174,7 +174,7 @@ internal class ProcessorTest {
                         Placeable(expression = StringLiteral("*")),
                         TextElement("bar")
                 ),
-                processor.toRawPattern(pattern)
+                processor.escapeTextToLiterals(pattern)
         )
 
         pattern.elements.clear()
@@ -189,7 +189,7 @@ internal class ProcessorTest {
                         TextElement("\nFoo\nbar    "),
                         Placeable(expression = StringLiteral(""))
                 ),
-                processor.toRawPattern(pattern)
+                processor.escapeTextToLiterals(pattern)
         )
     }
 }

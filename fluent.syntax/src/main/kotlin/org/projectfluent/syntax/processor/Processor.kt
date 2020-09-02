@@ -7,23 +7,23 @@ private val special =
         """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
 
 class Processor {
-    fun toProcessedPattern(pattern: Pattern): Pattern {
+    fun unescapeLiteralsToText(pattern: Pattern): Pattern {
         val result = Pattern()
-        for (elem in processedElements(pattern)) {
+        for (elem in textFromLiterals(pattern)) {
             result.elements.add(elem)
         }
         return result
     }
 
-    fun toRawPattern(pattern: Pattern): Pattern {
+    fun escapeTextToLiterals(pattern: Pattern): Pattern {
         val result = Pattern()
-        for (elem in rawElements(pattern)) {
+        for (elem in literalsFromText(pattern)) {
             result.elements.add(elem)
         }
         return result
     }
 
-    private fun processedElements(pattern: Pattern) = sequence {
+    private fun textFromLiterals(pattern: Pattern) = sequence {
         var lastText: TextElement? = null
         pattern.elements.forEach { element ->
             when (element) {
@@ -54,7 +54,7 @@ class Processor {
                         is SelectExpression -> {
                             val smartVariants: MutableList<Variant> = mutableListOf()
                             for (variant in expression.variants) {
-                                val smartVariant = Variant(variant.key, toProcessedPattern(variant.value), variant.default)
+                                val smartVariant = Variant(variant.key, unescapeLiteralsToText(variant.value), variant.default)
                                 smartVariants.add(smartVariant)
                             }
                             val smartSelect = SelectExpression(expression.selector, smartVariants)
@@ -80,7 +80,7 @@ class Processor {
         lastText?.let { yield(it) }
     }
 
-    private fun rawElements(pattern: Pattern) = sequence {
+    private fun literalsFromText(pattern: Pattern) = sequence {
         pattern.elements.forEach { element ->
             when (element) {
                 is TextElement -> {
@@ -135,7 +135,7 @@ class Processor {
                         is SelectExpression -> {
                             val rawVariants: MutableList<Variant> = mutableListOf()
                             for (variant in expression.variants) {
-                                val rawVariant = Variant(variant.key, toRawPattern(variant.value), variant.default)
+                                val rawVariant = Variant(variant.key, escapeTextToLiterals(variant.value), variant.default)
                                 rawVariants.add(rawVariant)
                             }
                             val rawSelect = SelectExpression(expression.selector, rawVariants)
