@@ -86,3 +86,82 @@ private fun unescape(matchResult: MatchResult): CharSequence {
     }
     throw Exception("Unexpected")
 }
+
+fun toRawPattern(pattern: Pattern): Pattern {
+    val result = Pattern()
+    for (elem in rawElements(pattern)) {
+        result.elements.add(elem)
+    }
+    return result
+}
+
+fun rawElements(pattern: Pattern) = sequence {
+    pattern.elements.forEach { element ->
+        when (element) {
+            is TextElement -> {
+                if (element.value.startsWith(' ') || element.value.startsWith('\n')) {
+                    val expr = StringLiteral("")
+                    yield(Placeable(expr))
+                }
+
+                var startIndex = 0
+                var endIndex = 0
+                for (i in element.value.indices) {
+                    when (val char = element.value[i]) {
+                        '{', '}' -> {
+                            val before = element.value.substring(startIndex, i)
+                            if (before.isNotEmpty()) {
+                                yield(TextElement(before))
+                            }
+                            val expr = StringLiteral(char.toString())
+                            yield(Placeable(expr))
+                            startIndex = i + 1
+                            endIndex = i + 1
+                        }
+                        '[', '*', '.' -> {
+                            if (i > 0 && element.value[i - 1] == '\n') {
+                                val before = element.value.substring(startIndex, i)
+                                yield(TextElement(before))
+                                val expr = StringLiteral(char.toString())
+                                yield(Placeable(expr))
+                                startIndex = i + 1
+                            }
+                            endIndex = i + 1
+                        }
+                        else -> {
+                            endIndex = i + 1
+                        }
+                    }
+                }
+
+                // Yield the remaining text.
+                if (endIndex > startIndex) {
+                    val text = element.value.substring(startIndex, endIndex)
+                    yield(TextElement(text))
+                }
+
+                if (element.value.endsWith(' ') || element.value.endsWith('\n')) {
+                    val expr = StringLiteral("")
+                    yield(Placeable(expr))
+                }
+            }
+            is Placeable -> {
+                when (val expression = element.expression) {
+                    is SelectExpression -> {
+                        val rawVariants: MutableList<Variant> = mutableListOf()
+                        for (variant in expression.variants) {
+                            val rawVariant = Variant(variant.key, toRawPattern(variant.value), variant.default)
+                            rawVariants.add(rawVariant)
+                        }
+                        val rawSelect = SelectExpression(expression.selector, rawVariants)
+                        val placeable = Placeable(rawSelect)
+                        yield(placeable)
+                    }
+                    else -> {
+                        yield(element)
+                    }
+                }
+            }
+        }
+    }
+}
