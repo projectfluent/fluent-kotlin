@@ -1,11 +1,14 @@
 package org.projectfluent.syntax.processor
 
-import org.projectfluent.syntax.ast.*
+import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 import java.lang.Exception
 
 private val special =
-        """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
+    """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
 
+/**
+ * Processor for transforming patterns.
+ */
 class Processor {
     fun unescapeLiteralsToText(pattern: Pattern): Pattern {
         val result = Pattern()
