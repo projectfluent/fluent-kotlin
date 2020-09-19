@@ -203,6 +203,35 @@ class SerializeResourceTest {
     }
 
     @Test
+    fun multiline_starting_inline() {
+        val input =
+            """
+            foo = Foo
+                Baz
+            
+            """.trimIndent()
+        val output =
+            """
+            foo =
+                Foo
+                Baz
+            
+            """.trimIndent()
+        assertEquals(output, this.pretty(input))
+    }
+
+    @Test
+    fun multiline_starting_inline_with_a_special_char() {
+        val input =
+            """
+            foo = *Foo
+                Baz
+            
+            """.trimIndent()
+        assertEquals(input, this.pretty(input))
+    }
+
+    @Test
     fun multiline_with_placeable() {
         val input =
             """
@@ -376,6 +405,19 @@ class SerializeResourceTest {
             
             """.trimIndent()
         assertEquals(expected, this.pretty(input))
+    }
+
+    @Test
+    fun select_expression_in_inline_pattern_starting_with_a_special_char() {
+        val input =
+            """
+            foo = .Foo { ${'$'}sel ->
+                   *[a] A
+                    [b] B
+                }
+            
+            """.trimIndent()
+        assertEquals(input, this.pretty(input))
     }
 
     @Test
