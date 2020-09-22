@@ -2,11 +2,33 @@ package org.projectfluent.syntax.serializer
 
 import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 
-private fun indent(content: CharSequence) = content.split("\n").joinToString("\n    ")
+private fun indentExceptFirstLine(content: CharSequence) =
+    content.split("\n").joinToString("\n    ")
 
-private fun PatternElement.includesLine() = this is TextElement && value.contains("\n")
+private fun PatternElement.includesLine() =
+    this is TextElement && value.contains("\n")
 
-private fun PatternElement.isSelectExpr() = this is Placeable && expression is SelectExpression
+private fun PatternElement.isSelectExpr() =
+    this is Placeable && expression is SelectExpression
+
+private fun Pattern.shouldStartOnNewLine(): Boolean {
+    val isMultiline = this.elements.any { it.isSelectExpr() || it.includesLine() }
+    if (isMultiline) {
+        val firstElement = this.elements.elementAtOrNull(0)
+        if (firstElement is TextElement) {
+            val firstChar = firstElement.value.elementAtOrNull(0)
+            // Due to the indentation requirement the following characters may not appear
+            // as the first character on a new line.
+            if (firstChar == '[' || firstChar == '.' || firstChar == '*') {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    return false
+}
 
 /**
  * Serialize Fluent nodes to `CharSequence`.
@@ -117,16 +139,15 @@ class FluentSerializer(private val withJunk: Boolean = false) {
     }
 
     private fun serializeAttribute(attribute: Attribute): CharSequence {
-        val value = indent(serializePattern(attribute.value))
+        val value = indentExceptFirstLine(serializePattern(attribute.value))
         return "\n    .${attribute.id.name} =$value"
     }
 
     private fun serializePattern(pattern: Pattern): CharSequence {
-        val startOnLine = pattern.elements.any { it.isSelectExpr() || it.includesLine() }
         val elements = pattern.elements.map(::serializeElement)
-        val content = indent(elements.joinToString(""))
+        val content = indentExceptFirstLine(elements.joinToString(""))
 
-        return if (startOnLine) {
+        return if (pattern.shouldStartOnNewLine()) {
             "\n    $content"
         } else {
             " $content"
@@ -187,7 +208,7 @@ class FluentSerializer(private val withJunk: Boolean = false) {
 
     private fun serializeVariant(variant: Variant): CharSequence {
         val key = serializeVariantKey(variant.key)
-        val value = indent(serializePattern(variant.value))
+        val value = indentExceptFirstLine(serializePattern(variant.value))
 
         return if (variant.default) {
             "\n   *[$key]$value"
