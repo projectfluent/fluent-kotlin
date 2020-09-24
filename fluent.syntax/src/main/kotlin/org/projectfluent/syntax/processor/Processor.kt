@@ -3,9 +3,6 @@ package org.projectfluent.syntax.processor
 import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
 import java.lang.Exception
 
-private val special =
-    """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
-
 /**
  * Process patterns by returning new patterns with elements transformed.
  */
@@ -162,16 +159,15 @@ class Processor {
         }
     }
 
+    private val special =
+        """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
+
     private fun unescape(matchResult: MatchResult): CharSequence {
         val matches = matchResult.groupValues.drop(2).listIterator()
         val simple = matches.next()
         if (simple != "") { return simple }
         val uni4 = matches.next()
         if (uni4 != "") {
-            val a = uni4.substring(1).toInt(16)
-            val b = a.toChar()
-            val c = b.toString()
-            val d = a.toString()
             return uni4.substring(1).toInt(16).toChar().toString()
         }
         throw Exception("Unexpected")
