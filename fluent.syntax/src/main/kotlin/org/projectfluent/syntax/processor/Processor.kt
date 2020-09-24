@@ -7,53 +7,12 @@ private val special =
     """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
 
 /**
- * Processor for transforming patterns.
- *
- * This class can be used to transform patterns in a way that is friendly
- * to localization workflows which want to allow text characters which are
- * special in Fluent to be written as regular text.
- *
- * According to the Fluent syntax, characters like the curly braces must be
- * enclosed in StringLiterals if they are supposed to be part of the
- * translation content. Otherwise, an open curly brace would start a Placeable
- * and likely lead to a syntax error.
- *
- * Workflows in which the support for Fluent placeables is limited may choose
- * to provide their own visual cues for them. This often comes in form of
- * visual placeholders which can be rearranged within a translation
- * segment by the translator, but whose contents cannot be modified.
- *
- * In these workflows, the special meaning of the character like the curly
- * braces is void; the translator is not able to insert new placeables by
- * opening a curly brace anyways. Thus, for translators' convenience, the
- * curly brace can be treated as a regular text character and part of the
- * translation content.
- *
- * The Processor's methods allow baking StringLiterals into TextElements, and
- * then "un-baking" them again if required by the Fluent syntax. Note that
- * all StringLiterals are baked, while only some are un-baked. The Processor
- * is lossy.
+ * Process patterns by returning new patterns with elements transformed.
  */
 class Processor {
     /**
      * "Bake" the values of StringLiterals into TextElements. This is a lossy
      * transformation for literals which are not special in Fluent syntax.
-     *
-     * Examples:
-     *
-     *     →Hello, {"{-_-}"}.
-     *     ←Hello, {-_-}.
-     *
-     *     →{"     "}Hello, world!
-     *     ←     Hello, world!
-     *
-     *     →A multiline pattern:
-     *      {"*"} Asterisk is special
-     *     ←A multiline pattern:
-     *      * Asterisk is special
-     *
-     *     →Copyright {"\u00A9"} 2020
-     *     ←Copyright © 2020
      */
     fun unescapeLiteralsToText(pattern: Pattern): Pattern {
         val result = Pattern()
@@ -65,25 +24,7 @@ class Processor {
 
     /**
      * "Un-bake" special characters into StringLiterals, which would otherwise
-     * cause syntax errors with Fluent parsers. Character sequences which might
-     * have been previously enclosed in StringLiterals, will not be un-baked,
-     * provided they are valid text characters in Fluent syntax.
-     *
-     * Examples:
-     *
-     *     →Hello, {-_-}.
-     *     ←Hello, {"{"}-_-{"}"}.
-     *
-     *     →     Hello, world!
-     *     ←{""}     Hello, world!
-     *
-     *     →A multiline pattern:
-     *      * Asterisk is special
-     *     ←A multiline pattern:
-     *      {"*"} Asterisk is special
-     *
-     *     →Copyright © 2020
-     *     ←Copyright © 2020
+     * cause syntax errors with Fluent parsers.
      */
     fun escapeTextToLiterals(pattern: Pattern): Pattern {
         val result = Pattern()
