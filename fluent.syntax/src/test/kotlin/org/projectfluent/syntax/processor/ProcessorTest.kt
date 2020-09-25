@@ -68,6 +68,22 @@ internal class ProcessorTest {
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
+                TextElement("Emoji: "),
+                Placeable(expression = StringLiteral("""\U01f602"""))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Emoji: \uD83D\uDE02")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+        assertEquals(
+            Pattern(TextElement("Emoji: 😂")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
                 TextElement("Hi, "),
                 Placeable(expression = StringLiteral("""{""")),
                 TextElement(" there")
