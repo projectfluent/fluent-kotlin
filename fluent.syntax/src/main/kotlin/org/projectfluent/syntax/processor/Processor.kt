@@ -37,7 +37,7 @@ class Processor {
             when (element) {
                 is TextElement -> {
                     if (lastText == null) {
-                        lastText = element
+                        lastText = TextElement(element.value)
                     } else {
                         lastText?.let { it.value += element.value }
                     }

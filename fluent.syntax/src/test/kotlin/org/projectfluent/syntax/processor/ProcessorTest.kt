@@ -35,6 +35,26 @@ internal class ProcessorTest {
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
+                TextElement("Foo "),
+                Placeable(expression = StringLiteral("Bar"))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Foo Bar")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+        // The original Pattern isn't modified.
+        assertEquals(
+            Pattern(
+                TextElement("Foo "),
+                Placeable(expression = StringLiteral("Bar"))
+            ),
+            pattern
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
                 TextElement("Hi,"),
                 Placeable(expression = StringLiteral("""\u0020""")),
                 TextElement("there")
