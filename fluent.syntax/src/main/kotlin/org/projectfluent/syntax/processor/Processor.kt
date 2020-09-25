@@ -98,7 +98,6 @@ class Processor {
                     }
 
                     var startIndex = 0
-                    var endIndex = 0
                     for (i in element.value.indices) {
                         when (val char = element.value[i]) {
                             '{', '}' -> {
@@ -109,7 +108,6 @@ class Processor {
                                 val expr = StringLiteral(char.toString())
                                 yield(Placeable(expr))
                                 startIndex = i + 1
-                                endIndex = i + 1
                             }
                             '[', '*', '.' -> {
                                 if (i > 0 && element.value[i - 1] == '\n') {
@@ -119,17 +117,13 @@ class Processor {
                                     yield(Placeable(expr))
                                     startIndex = i + 1
                                 }
-                                endIndex = i + 1
-                            }
-                            else -> {
-                                endIndex = i + 1
                             }
                         }
                     }
 
                     // Yield the remaining text.
-                    if (endIndex > startIndex) {
-                        val text = element.value.substring(startIndex, endIndex)
+                    if (element.value.lastIndex > startIndex) {
+                        val text = element.value.substring(startIndex)
                         yield(TextElement(text))
                     }
 
