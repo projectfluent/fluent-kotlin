@@ -44,13 +44,6 @@ class Processor {
                 }
                 is Placeable -> {
                     when (val expression = element.expression) {
-                        is NumberLiteral -> {
-                            val content = expression.value
-                            if (lastText == null) {
-                                lastText = TextElement("")
-                            }
-                            lastText?.let { it.value += content }
-                        }
                         is StringLiteral -> {
                             var content = expression.value
                             content = special.replace(content) { m -> unescape(m) }
