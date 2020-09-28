@@ -1,7 +1,6 @@
 package org.projectfluent.syntax.processor
 
 import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
-import java.lang.Exception
 import java.lang.StringBuilder
 
 /**
@@ -161,7 +160,10 @@ class Processor {
         if (uni4 != "") {
             val codepoint = uni4.substring(1).toInt(16)
             if (Character.isBmpCodePoint(codepoint)) {
-                return codepoint.toChar().toString()
+                val char = codepoint.toChar()
+                if (!Character.isSurrogate(char)) {
+                    return char.toString()
+                }
             }
         }
 
@@ -169,13 +171,16 @@ class Processor {
         if (uni6 != "") {
             val codepoint = uni6.substring(1).toInt(16)
             if (Character.isValidCodePoint(codepoint)) {
-                val builder = StringBuilder()
-                builder.append(Character.highSurrogate(codepoint))
-                builder.append(Character.lowSurrogate(codepoint))
-                return builder
+                val char = codepoint.toChar()
+                if (!Character.isSurrogate(char)) {
+                    val builder = StringBuilder()
+                    builder.append(Character.highSurrogate(codepoint))
+                    builder.append(Character.lowSurrogate(codepoint))
+                    return builder
+                }
             }
         }
 
-        throw Exception("Unexpected")
+        return "�"
     }
 }

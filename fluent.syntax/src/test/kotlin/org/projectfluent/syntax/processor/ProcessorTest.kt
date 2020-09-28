@@ -84,6 +84,30 @@ internal class ProcessorTest {
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
+                TextElement("Illegal escape sequence: "),
+                Placeable(expression = StringLiteral("""\ud800"""))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Illegal escape sequence: �")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
+                TextElement("Illegal escape sequence: "),
+                Placeable(expression = StringLiteral("""\U00d800"""))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Illegal escape sequence: �")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
                 TextElement("Hi, "),
                 Placeable(expression = StringLiteral("""{""")),
                 TextElement(" there")
