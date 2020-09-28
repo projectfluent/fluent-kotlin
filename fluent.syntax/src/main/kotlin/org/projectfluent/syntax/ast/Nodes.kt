@@ -1,8 +1,11 @@
 package org.projectfluent.syntax.ast
 
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.jvmName
 
 /**
  * Base class for all Fluent AST nodes.
@@ -13,6 +16,12 @@ import kotlin.reflect.full.memberProperties
  */
 abstract class BaseNode {
 
+    fun properties() = sequence {
+        publicProperties(this@BaseNode::class).forEach {
+            yield(it.name to it.getter.call(this@BaseNode))
+        }
+    }
+
     override fun equals(other: Any?) =
         if (other is BaseNode) {
             this.equals(other, emptySet())
@@ -22,7 +31,7 @@ abstract class BaseNode {
 
     fun equals(other: BaseNode, ignoredFields: Set<String> = setOf("span")): Boolean =
         if (this::class == other::class) {
-            publicMemberProperties(this::class, ignoredFields).all {
+            publicProperties(this::class, ignoredFields).all {
                 val thisValue = it.getter.call(this)
                 val otherValue = it.getter.call(other)
                 if (thisValue is Collection<*> && otherValue is Collection<*>) {
@@ -40,10 +49,13 @@ abstract class BaseNode {
         }
 
     private companion object {
-        private fun publicMemberProperties(clazz: KClass<*>, ignoredFields: Set<String>) =
-            clazz.memberProperties
-                .filter { it.visibility == KVisibility.PUBLIC }
-                .filterNot { ignoredFields.contains(it.name) }
+        private val publicPropertiesReflectionCache = ConcurrentHashMap<String, Collection<KProperty<*>>>()
+
+        private fun publicProperties(clazz: KClass<out BaseNode>, ignoredFields: Set<String> = emptySet()) =
+            publicPropertiesReflectionCache.getOrPut(
+                clazz.jvmName,
+                { clazz.memberProperties.filter { it.visibility == KVisibility.PUBLIC } }
+            ).filterNot { ignoredFields.contains(it.name) }
 
         private fun scalarsEqual(left: Any?, right: Any?, ignoredFields: Set<String>) =
             if (left is BaseNode && right is BaseNode) {

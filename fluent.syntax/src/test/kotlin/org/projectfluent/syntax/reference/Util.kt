@@ -2,14 +2,16 @@ package org.projectfluent.syntax.reference
 
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
-import org.junit.jupiter.api.Assertions.*
-import org.projectfluent.syntax.ast.*
-import org.projectfluent.syntax.visitor.childrenOf
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.projectfluent.syntax.ast.BaseNode
+import org.projectfluent.syntax.ast.Whitespace
 
 fun assertAstEquals(jsonObject: JsonObject, node: BaseNode, stack: MutableList<String> = mutableListOf()) {
     val jType = jsonObject.remove("type")
     assertEquals(jType, node::class.simpleName, stack.joinToString(">"))
-    for ((key, value) in childrenOf(node)) {
+    for ((key, value) in node.properties()) {
         if (key == "span") {
             value?.let {
                 val expected = jsonObject.obj(key)
@@ -25,7 +27,7 @@ fun assertAstEquals(jsonObject: JsonObject, node: BaseNode, stack: MutableList<S
             assertNull(value, "${stack.joinToString(">")} is expected to be null")
         }
         when (value) {
-            null -> assertNull(jVal, "${stack.joinToString(">") }} is expected to be not null")
+            null -> assertNull(jVal, "${stack.joinToString(">")}} is expected to be not null")
             is BaseNode -> assertAstEquals(jVal as JsonObject, value, stack)
             is Collection<*> -> {
                 assertTrue(jVal is JsonArray<*>, "${stack.joinToString(">")} is not a list")

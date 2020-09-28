@@ -1,23 +1,13 @@
 package org.projectfluent.syntax.visitor
 
 import org.projectfluent.syntax.ast.BaseNode
-import java.lang.reflect.Method
+import java.io.InvalidClassException
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
-import kotlin.reflect.full.memberProperties
-
-/**
- * Iterate over the properties of a node.
- *
- * Use this method if you want to control deep inspection
- * of an AST tree yourself.
- */
-fun childrenOf(node: BaseNode) = sequence {
-    node::class.memberProperties.forEach { prop ->
-        if (prop.visibility == KVisibility.PUBLIC) {
-            yield(Pair(prop.name, prop.getter.call(node)))
-        }
-    }
-}
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.jvm.kotlinFunction
 
 /**
  * Generic Visitor base class.
@@ -26,13 +16,9 @@ fun childrenOf(node: BaseNode) = sequence {
  * e.g. `visitResource(node: Resource)` to handle the `Resource` node type.
  */
 abstract class Visitor {
-    private val handlers: MutableMap<String, Method> = mutableMapOf()
+
     init {
-        this::class.java.declaredMethods.filter {
-            it.name.startsWith("visit")
-        }.map {
-            handlers[it.name.substring("visit".length)] = it
-        }
+        handlers(this::class)
     }
 
     /**
@@ -41,8 +27,7 @@ abstract class Visitor {
      * This is the method you want to call on concrete visitor implementations.
      */
     fun visit(node: BaseNode) {
-        val cName = node::class.java.simpleName
-        val handler = this.handlers[cName]
+        val handler = handlers(this::class)[node::class.jvmName]
         if (handler != null) {
             handler.invoke(this, node)
         } else {
@@ -55,11 +40,40 @@ abstract class Visitor {
      * method to continue iteration into the AST if desired.
      */
     fun genericVisit(node: BaseNode) {
-        childrenOf(node).map { (_, value) -> value }.forEach { value ->
+        node.properties().forEach { (_, value) ->
             when (value) {
                 is BaseNode -> this.visit(value)
                 is Collection<*> -> value.filterIsInstance<BaseNode>().map { this.visit(it) }
             }
         }
+    }
+
+    private companion object {
+        private val handlersReflectionCache = ConcurrentHashMap<String, Map<String, (Visitor, BaseNode) -> Unit?>>()
+
+        private fun handlers(clazz: KClass<out Visitor>) =
+            handlersReflectionCache.getOrPut(
+                clazz.jvmName,
+                {
+                    clazz.java.declaredMethods
+                        .filter { it.name.startsWith("visit") && it.kotlinFunction?.visibility == KVisibility.PUBLIC }
+                        .filter { it.parameterCount == 1 && it.parameterTypes[0].kotlin.isSubclassOf(BaseNode::class) }
+                        .filter { method ->
+                            val argumentClassName = method.parameterTypes[0].kotlin.simpleName
+                            val expectedMethodName = "visit$argumentClassName"
+                            if (method.name == expectedMethodName) {
+                                true
+                            } else {
+                                throw InvalidClassException("Method '${clazz.simpleName}.${method.name}($argumentClassName)' must be called '$expectedMethodName', or must not be public.")
+                            }
+                        }
+                        .associate {
+                            Pair(
+                                it.parameterTypes[0].kotlin.jvmName,
+                                { visitor: Visitor, node: BaseNode -> it.invoke(visitor, node) as Unit? }
+                            )
+                        }
+                }
+            )
     }
 }

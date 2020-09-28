@@ -10,6 +10,7 @@ public class JavaWordCounter extends Visitor {
     private static final java.util.regex.Pattern WORD_BOUNDARY = Pattern.compile("\\W+");
 
     private int words;
+
     public JavaWordCounter() {
         words = 0;
     }
