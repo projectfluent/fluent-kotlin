@@ -1,49 +1,54 @@
 package org.projectfluent.syntax.parser
 
-internal open class ParserStream(var string: String) {
+import kotlin.math.max
+import kotlin.math.min
+
+internal const val EOL = '\n'
+internal val EOF: Char? = null
+
+internal open class ParserStream(val string: String) {
     var index: Int = 0
     var peekOffset: Int = 0
+
+    private fun cursorAtCRLF(offset: Int): Boolean {
+        val maxIndex = max(string.length - 1, 0)
+        val nextTwoChars = string.subSequence(min(offset, maxIndex), min(offset + 2, maxIndex))
+        return nextTwoChars.toString() == "\r\n"
+    }
 
     private fun charAt(offset: Int): Char? {
         // When the cursor is at CRLF, return LF but don't move the cursor.
         // The cursor still points to the EOL position, which in this case is the
         // beginning of the compound CRLF sequence. This ensures slices of
         // [inclusive, exclusive) continue to work properly.
-        return if (this.string.getOrNull(offset) == '\r' && this.string.getOrNull(offset + 1) == '\n') {
-            '\n'
+        return if (cursorAtCRLF(offset)) {
+            EOL
         } else {
             this.string.getOrNull(offset)
         }
     }
 
-    fun currentChar(): Char? {
-        return this.charAt(this.index)
-    }
+    fun currentChar() = charAt(index)
 
-    fun currentPeek(): Char? {
-        return this.charAt(this.index + this.peekOffset)
-    }
+    fun currentPeek() = charAt(index + peekOffset)
 
     fun next(): Char? {
-        this.peekOffset = 0
-        if (this.index >= this.string.length) return null
-        // Skip over the CRLF as if it was a single character.
-        if (this.string[this.index] == '\r' && this.string.getOrNull(this.index + 1) == '\n') {
-            this.index++
+        resetPeek()
+        index += if (cursorAtCRLF(index)) { // Skip over the CRLF as if it was a single character.
+            2
+        } else {
+            1
         }
-        this.index++
-        return this.string.getOrNull(this.index)
+        return currentChar()
     }
 
     fun peek(): Char? {
-        // Skip over the CRLF as if it was a single character.
-        if (this.string.getOrNull(this.index + this.peekOffset) == '\r' &&
-            this.string.getOrNull(this.index + this.peekOffset + 1) == '\n'
-        ) {
-            this.peekOffset++
+        peekOffset += if (cursorAtCRLF(index + peekOffset)) { // Skip over the CRLF as if it was a single character.
+            2
+        } else {
+            1
         }
-        this.peekOffset++
-        return this.string.getOrNull(this.index + peekOffset)
+        return currentPeek()
     }
 
     fun resetPeek(offset: Int = 0) {
@@ -52,13 +57,9 @@ internal open class ParserStream(var string: String) {
 
     fun skipToPeek() {
         this.index += this.peekOffset
-        this.peekOffset = 0
+        resetPeek()
     }
 }
-
-internal const val EOL = '\n'
-internal val EOF: Char? = null
-internal const val SPECIAL_LINE_START_CHARS = "}.[*"
 
 internal class FluentStream(string: String) : ParserStream(string) {
 
@@ -77,22 +78,21 @@ internal class FluentStream(string: String) : ParserStream(string) {
     }
 
     fun peekBlankBlock(): String {
-        var blank = ""
+        val blank = StringBuilder()
         while (true) {
             val lineStart = this.peekOffset
             this.peekBlankInline()
-            if (this.currentPeek() == EOL) {
-                blank += EOL
-                this.peek()
-                continue
+            when (val current = currentPeek()) {
+                EOL -> { // Continue to next line.
+                    blank.append(current)
+                    peek()
+                }
+                EOF -> return blank.toString() // Treat the blank line at EOF as a blank block.
+                else -> { // Any other char; reset to column 1 on this line.
+                    resetPeek(lineStart)
+                    return blank.toString()
+                }
             }
-            if (this.currentPeek() == EOF) {
-                // Treat the blank line at EOF as a blank block.
-                return blank
-            }
-            // Any other char; reset to column 1 on this line.
-            this.resetPeek(lineStart)
-            return blank
         }
     }
 
@@ -113,99 +113,64 @@ internal class FluentStream(string: String) : ParserStream(string) {
         this.skipToPeek()
     }
 
-    fun expectChar(ch: Char) {
-        if (this.currentChar() == ch) {
+    fun expectChar(ch: Char) =
+        when (currentChar()) {
+            ch -> next()
+            else -> throw ParseError("E0003", ch)
+        }
+
+    fun expectLineEnd() =
+        when (currentChar()) {
+            EOL, EOF -> next() // EOF is a valid line end in Fluent.
+            else -> throw ParseError("E0003", "\u2424") // Unicode Character 'SYMBOL FOR NEWLINE' (U+2424)
+        }
+
+    fun takeChar(predicate: (ch: Char) -> Boolean): Char? {
+        val current = currentChar()
+        return if (current != null && predicate(current)) {
             this.next()
-            return
+            current
+        } else {
+            null
         }
-
-        throw ParseError("E0003", ch)
     }
 
-    fun expectLineEnd() {
-        if (this.currentChar() == EOF) {
-            // EOF is a valid line end in Fluent.
-            return
-        }
-
-        if (this.currentChar() == EOL) {
-            this.next()
-            return
-        }
-
-        // Unicode Character 'SYMBOL FOR NEWLINE' (U+2424)
-        throw ParseError("E0003", "\u2424")
-    }
-
-    fun takeChar(f: (ch: Char) -> Boolean): Char? {
-        val ch = this.currentChar()
-        ch?.let {
-            if (f(ch)) {
-                this.next()
-                return ch
-            }
-        }
-        return null
-    }
-
-    private fun isCharIdStart(ch: Char?): Boolean {
-        ch?.let {
-            val cc = ch.toInt()
-            return (cc in 97..122) || // a-z
-                (cc in 65..90) // A-Z
-        }
-        return false
-    }
-
-    fun isIdentifierStart(): Boolean {
-        return this.isCharIdStart(this.currentPeek())
-    }
+    fun isIdentifierStart() = isCharIdStart(currentPeek())
 
     fun isNumberStart(): Boolean {
-        val ch = if (this.currentChar() == '-') this.peek() else this.currentChar()
-
-        ch?.let {
-            val cc = ch.toInt()
-            val isDigit = cc in 48..57 // 0-9
-            this.resetPeek()
-            return isDigit
+        val ch = if (currentChar() == '-') {
+            peek()
+        } else {
+            currentChar()
         }
         this.resetPeek()
-        return false
+        return ch?.toInt() in 48..57 // 0-9 (isDigit)
     }
 
-    private fun isCharPatternContinuation(ch: Char?): Boolean {
-        ch?.let {
-            return SPECIAL_LINE_START_CHARS.indexOf(ch) < 0
-        }
-        return false
-    }
-
-    fun isValueStart(): Boolean {
+    fun isValueStart() =
         // Inline Patterns may start with any char.
-        val ch = this.currentPeek()
-        return ch != EOL && ch != EOF
-    }
+        when (currentPeek()) {
+            EOL, EOF -> false
+            else -> true
+        }
 
     fun isValueContinuation(): Boolean {
         val column1 = this.peekOffset
         this.peekBlankInline()
+        val current = currentPeek()
 
-        if (this.currentPeek() == '{') {
-            this.resetPeek(column1)
-            return true
+        return when {
+            current == '{' -> {
+                resetPeek(column1)
+                true
+            }
+            peekOffset == column1 -> false
+            isCharPatternContinuation(current) -> {
+                resetPeek(column1)
+                true
+            }
+            else -> false
         }
-
-        if (this.peekOffset - column1 == 0) {
-            return false
-        }
-
-        if (this.isCharPatternContinuation(this.currentPeek())) {
-            this.resetPeek(column1)
-            return true
-        }
-
-        return false
     }
 
     // -1 - any
@@ -217,28 +182,25 @@ internal class FluentStream(string: String) : ParserStream(string) {
             return false
         }
 
-        var i = 0
-
-        while (i <= level || (level == -1 && i < 3)) {
+        val bound = if (level == -1) 2 else level
+        for (i in 0..bound) {
             if (this.peek() != '#') {
-                if (i <= level && level != -1) {
+                if (level != -1) {
                     this.resetPeek()
                     return false
+                } else {
+                    break
                 }
-                break
             }
-            i++
         }
 
         // The first char after #, ## or ###.
-        val ch = this.peek()
-        if (ch == ' ' || ch == EOL) {
-            this.resetPeek()
-            return true
+        val ch = peek()
+        resetPeek()
+        return when (ch) {
+            ' ', EOL -> true
+            else -> false
         }
-
-        this.resetPeek()
-        return false
     }
 
     fun isVariantStart(): Boolean {
@@ -246,17 +208,12 @@ internal class FluentStream(string: String) : ParserStream(string) {
         if (this.currentPeek() == '*') {
             this.peek()
         }
-        if (this.currentPeek() == '[') {
-            this.resetPeek(currentPeekOffset)
-            return true
-        }
+        val ret = this.currentPeek() == '['
         this.resetPeek(currentPeekOffset)
-        return false
+        return ret
     }
 
-    fun isAttributeStart(): Boolean {
-        return this.currentPeek() == '.'
-    }
+    fun isAttributeStart() = currentPeek() == '.'
 
     fun skipToNextEntryStart(junkStart: Int) {
         val lastNewline = this.string.lastIndexOf(EOL, this.index)
@@ -265,7 +222,7 @@ internal class FluentStream(string: String) : ParserStream(string) {
             // without the risk of resuming at the same broken entry.
             this.index = lastNewline
         }
-        while (this.currentChar() != null) {
+        while (currentChar() != EOF) {
             // We're only interested in beginnings of line.
             if (this.currentChar() != EOL) {
                 this.next()
@@ -274,56 +231,55 @@ internal class FluentStream(string: String) : ParserStream(string) {
 
             // Break if the first char in this line looks like an entry start.
             val first = this.next()
-            if (this.isCharIdStart(first) || first == '-' || first == '#') {
-                break
+            if (isCharIdStart(first) || first == '-' || first == '#') {
+                return
             }
         }
     }
 
     fun takeIDStart(): Char {
-        if (this.isCharIdStart(this.currentChar())) {
-            val ret = this.currentChar()
-            // Kotlin doesn't know we're non-null, make it so
-            ret?.let {
-                this.next()
-                return ret
+        val current = currentChar()
+        return if (current != null && isCharIdStart(current)) {
+            this.next()
+            current
+        } else {
+            throw ParseError("E0004", "a-zA-Z")
+        }
+    }
+
+    fun takeIDChar() =
+        takeChar {
+            when (it.toInt()) {
+                in 97..122, in 65..90, in 48..57, 95, 45 -> true // a-z, A-Z, _, -
+                else -> false
             }
         }
 
-        throw ParseError("E0004", "a-zA-Z")
-    }
-
-    fun takeIDChar(): Char? {
-        val closure = fun (ch: Char): Boolean {
-            val cc = ch.toInt()
-            return (
-                (cc in 97..122) || // a-z
-                    (cc in 65..90) || // A-Z
-                    (cc in 48..57) || // 0-9
-                    cc == 95 || cc == 45
-                ) // _-
+    fun takeDigit() =
+        takeChar {
+            when (it.toInt()) {
+                in 48..57 -> true // 0-9
+                else -> false
+            }
         }
 
-        return this.takeChar(closure)
-    }
-
-    fun takeDigit(): Char? {
-        val closure = fun (ch: Char): Boolean {
-            val cc = ch.toInt()
-            return (cc in 48..57) // 0-9
+    fun takeHexDigit() =
+        takeChar {
+            when (it.toInt()) {
+                in 48..57, in 65..70, in 97..102 -> true // 0-9, A-F, a-f
+                else -> false
+            }
         }
 
-        return this.takeChar(closure)
-    }
+    private companion object {
+        private const val SPECIAL_LINE_START_CHARS = "}.[*"
 
-    fun takeHexDigit(): Char? {
-        val closure = fun (ch: Char): Boolean {
-            val cc = ch.toInt()
-            return (cc in 48..57) || // 0-9
-                (cc in 65..70) || // A-F
-                (cc in 97..102) // a-f
-        }
+        private fun isCharIdStart(ch: Char?) =
+            when (ch?.toInt()) {
+                in 97..122, in 65..90 -> true // a-z, A-Z
+                else -> false
+            }
 
-        return this.takeChar(closure)
+        private fun isCharPatternContinuation(ch: Char?) = (ch != null) && (ch !in SPECIAL_LINE_START_CHARS)
     }
 }
