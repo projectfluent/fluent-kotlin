@@ -1,7 +1,7 @@
 package org.projectfluent.syntax.processor
 
 import org.projectfluent.syntax.ast.* // ktlint-disable no-wildcard-imports
-import java.lang.Exception
+import java.lang.StringBuilder
 
 /**
  * Process patterns by returning new patterns with elements transformed.
@@ -37,7 +37,7 @@ class Processor {
             when (element) {
                 is TextElement -> {
                     if (lastText == null) {
-                        lastText = element
+                        lastText = TextElement(element.value)
                     } else {
                         lastText?.let { it.value += element.value }
                     }
@@ -147,16 +147,40 @@ class Processor {
     }
 
     private val special =
-        """\\(([\\"])|(u[0-9a-fA-F]{4}))""".toRegex()
+        """\\(([\\"])|(u[0-9a-fA-F]{4})|(U[0-90a-fA-F]{6}))""".toRegex()
 
     private fun unescape(matchResult: MatchResult): CharSequence {
         val matches = matchResult.groupValues.drop(2).listIterator()
         val simple = matches.next()
-        if (simple != "") { return simple }
+        if (simple != "") {
+            return simple
+        }
+
         val uni4 = matches.next()
         if (uni4 != "") {
-            return uni4.substring(1).toInt(16).toChar().toString()
+            val codepoint = uni4.substring(1).toInt(16)
+            if (Character.isBmpCodePoint(codepoint)) {
+                val char = codepoint.toChar()
+                if (!Character.isSurrogate(char)) {
+                    return char.toString()
+                }
+            }
         }
-        throw Exception("Unexpected")
+
+        val uni6 = matches.next()
+        if (uni6 != "") {
+            val codepoint = uni6.substring(1).toInt(16)
+            if (Character.isValidCodePoint(codepoint)) {
+                val char = codepoint.toChar()
+                if (!Character.isSurrogate(char)) {
+                    val builder = StringBuilder()
+                    builder.append(Character.highSurrogate(codepoint))
+                    builder.append(Character.lowSurrogate(codepoint))
+                    return builder
+                }
+            }
+        }
+
+        return "�"
     }
 }

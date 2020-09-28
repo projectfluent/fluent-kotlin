@@ -35,6 +35,26 @@ internal class ProcessorTest {
         pattern.elements.clear()
         pattern.elements.addAll(
             arrayOf(
+                TextElement("Foo "),
+                Placeable(expression = StringLiteral("Bar"))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Foo Bar")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+        // The original Pattern isn't modified.
+        assertEquals(
+            Pattern(
+                TextElement("Foo "),
+                Placeable(expression = StringLiteral("Bar"))
+            ),
+            pattern
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
                 TextElement("Hi,"),
                 Placeable(expression = StringLiteral("""\u0020""")),
                 TextElement("there")
@@ -42,6 +62,46 @@ internal class ProcessorTest {
         )
         assertEquals(
             Pattern(TextElement("Hi, there")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
+                TextElement("Emoji: "),
+                Placeable(expression = StringLiteral("""\U01f602"""))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Emoji: \uD83D\uDE02")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+        assertEquals(
+            Pattern(TextElement("Emoji: 😂")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
+                TextElement("Illegal escape sequence: "),
+                Placeable(expression = StringLiteral("""\ud800"""))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Illegal escape sequence: �")),
+            processor.unescapeLiteralsToText(pattern)
+        )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+            arrayOf(
+                TextElement("Illegal escape sequence: "),
+                Placeable(expression = StringLiteral("""\U00d800"""))
+            )
+        )
+        assertEquals(
+            Pattern(TextElement("Illegal escape sequence: �")),
             processor.unescapeLiteralsToText(pattern)
         )
 
