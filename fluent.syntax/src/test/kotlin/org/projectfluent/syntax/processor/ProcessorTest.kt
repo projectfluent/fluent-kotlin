@@ -251,5 +251,23 @@ internal class ProcessorTest {
             ),
             processor.escapeTextToLiterals(pattern)
         )
+
+        pattern.elements.clear()
+        pattern.elements.addAll(
+                arrayOf(
+                        TextElement("Hi "),
+                        Placeable(expression = VariableReference(Identifier("var"))),
+                        TextElement("!")
+                )
+        )
+
+        assertEquals(
+                Pattern(
+                        TextElement("Hi "),
+                        Placeable(expression = StringLiteral("")),
+                        Placeable(expression = VariableReference(Identifier("var"))),
+                        TextElement("!")
+                ),
+                processor.escapeTextToLiterals(pattern))
     }
 }

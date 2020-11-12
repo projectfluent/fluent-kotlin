@@ -115,7 +115,7 @@ class Processor {
                     }
 
                     // Yield the remaining text.
-                    if (element.value.lastIndex > startIndex) {
+                    if (element.value.lastIndex >= startIndex) {
                         val text = element.value.substring(startIndex)
                         yield(TextElement(text))
                     }
